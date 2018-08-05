@@ -1,10 +1,12 @@
 import sqlite3 as sql
 import time
 import tkinter
+from tkinter import *
 window=tkinter.Tk()
-CounterButton=tkinter.Button(padx=320,pady=240)
+CounterButton=tkinter.Button(width=320,pady=240)
 conn=sql.connect("../coredata.db")
 c=conn.cursor()
+
 def Alarmconfirmed(MainButton):
     
     x=time.mktime(time.localtime())
@@ -24,28 +26,27 @@ def AlarmplusHours(Hours):
         c.execute('update alarms set timer=? where timer=?',q)
         conn.commit()
 def SwitchGUI(window, OldButton):
-    NewButton=OldButton.copy()
-    OldButton.destroy()
-    AlarmNow=tkinter.Button(window,pady=80, padx=160, text="Alarm ausloesen", background="red",justify="left")
-    AlarmPlusAnHour=tkinter.Button(window,pady=80,padx=160,text="Alarm 1 Stunde verschieben", justify="left",command=AlarmplusHours(1))
-    Alarmplus1day=tkinter.Button(window,pady=80,padx=160,text="Alarm 1 Tag verschieben",justify="left", command=AlarmplusHours(24))
+    NewButton=OldButton
+    OldButton.destroy
+    AlarmNow=tkinter.Button(window,pady=80, padx=160, text="Alarm ausloesen", background="red")
+    AlarmPlusAnHour=tkinter.Button(window,pady=80,padx=160,text="Alarm 1 Stunde verschieben",command=AlarmplusHours(1))
+    Alarmplus1day=tkinter.Button(window,pady=80,padx=160,text="Alarm 1 Tag verschieben",command=AlarmplusHours(24))
     NextAlarm=tkinter.Label(window,pady=240, padx=160, justify="left")
     def newalarm(label):
-        while True :
-            try:  
+        def count():
+              
                 c.execute('select timer from alarms where approved is null order by timer asc')
                 x=time.ctime(c.fetchall[0][0])
                 label.configure(text=x)
-                time.sleep(0.1)
-            except:
-                break
-    NextAlarm.pack()
+                label.after(1000, count)
+        count()   
+    NextAlarm.grid(row=0,column=0,rowspan=3)
     newalarm(NextAlarm)
-    Alarmplus1day.pack()
-    AlarmPlusAnHour.pack()
-    AlarmNow.pack()
+    Alarmplus1day.grid(row=0,column=1)
+    AlarmPlusAnHour.grid(row=1,column=1)
+    AlarmNow.grid(row=2,column=1)
     window.mainloop()
-    time.sleep(60)
+    time.sleep(20)
     NextAlarm.destroy()
     Alarmplus1day.destroy()
     AlarmPlusAnHour.destroy()
@@ -92,3 +93,4 @@ def mainloop():
         check_for_alarm()
         c.execute('select loop_duration from standard_settings')
         time.sleep(c.fetchone()[0])
+mainloop()

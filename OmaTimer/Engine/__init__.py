@@ -5,14 +5,18 @@ c=conn.cursor()
 c.execute('select * from standard_alarms')
 print("standard alarms "+str(c.fetchall()))
 alarmcounter=0
-def midnight(alarmcounter):
+def sendtoserver(approvedtimestamp):
+    pass
+def new_alarms(alarmcounter):
     
         print(time.asctime(time.localtime()))
         
         c.execute('select * from standard_alarms')
         y=c.fetchall()
         c.execute('select timer from alarms where approved is null order by timer asc')
+        
         unapprovedtimers=c.fetchall()
+        
         for i in y:
             z=list(time.localtime())
             z[3]=i[1]
@@ -25,7 +29,7 @@ def midnight(alarmcounter):
                     q.append(time.mktime(tuple(z)))
             
                     q.append(alarmcounter)
-                    c.execute('Insert into alarms values(?,?,NULL,?)',q)
+                    c.execute('Insert into alarms values(?,?,NULL,?,0)',q)
                     alarmcounter+=1
                     conn.commit()
             
@@ -34,9 +38,11 @@ def midnight(alarmcounter):
 def mainloop():
     while True:
         c.execute('select loop_duration from standard_settings')
-        time.sleep(c.fetchone()[0])   
-        if time.localtime()[3]==24&time.localtime()[4]==0:
-            midnight(alarmcounter)
-            
+        time.sleep(c.fetchone()[0])
+        c.execute('select approved from alarms where sendtoserver=0 and approved is not null') 
+        x=c.fetchall()  
+        if len(x)>0:
+            new_alarms(alarmcounter)
+            sendtoserver(x[0][0])
         
 
