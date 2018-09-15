@@ -1,0 +1,229 @@
+#usr/bin/python3
+import sqlite3 as sql
+from functools import partial
+import time
+import threading
+import tkinter
+
+from tkinter import *
+#setup for window and frame for the fixed size
+root=tkinter.Tk()
+root.overrideredirect(True)
+window=tkinter.Frame(root, width=320, height=240)
+window.grid_columnconfigure([0,1], minsize=160,weight=1)
+window.grid_rowconfigure([0,1,2], minsize=80,weight=1)
+window.grid_propagate(False)
+window.grid(sticky=S+W+N+E)
+#main Button
+CounterButton=tkinter.Button(window, font=("Helvetica",40))
+#menu Buttons and labels
+AlarmNow=tkinter.Button(window, text="Alarm ausloesen", background="red")   
+AlarmPlusAnHour=tkinter.Button(window,text="Alarm 1 Stunde verschieben",command=lambda: AlarmplusHours(1))    
+Alarmplus1day=tkinter.Button(window,text="Alarm 1 Tag verschieben",command=lambda: AlarmplusHours(24))
+NextAlarm=tkinter.Label(window)   
+#connects to the main DB
+conn=sql.connect("../coredata.db")
+c=conn.cursor()
+class Main_Button(tkinter.Button):
+    def counter_Button(self):
+        #displays the next ALarm and the time remaining
+        c.execute('select timer from alarms where approved is null order by timer asc' )
+
+        x=c.fetchall()[0][0]
+
+        q=list(time.localtime(x))
+
+        gg=str(q[3])+":"+str(q[4])
+
+        def refresh():
+            #refreshes the button every second
+            
+            y=time.mktime(time.localtime())
+
+            z=time.gmtime(x-y)
+
+            self.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
+
+            self.after(1000, refresh)
+
+            
+
+        refresh()
+        window.mainloop() 
+        
+class GUI():
+    def __init__(self):
+        self.Elements=[]
+    def add_Element(self, GUI_ELement,row,column,rspan,cspan):
+        self.Elements.append([GUI_ELement,row,column,rspan,cspan])
+    def grid_all_Elements(self):
+        for i in self.Elements:
+            i[0].grid(row=i[1],column=i[2],rowspan=[3],columnspan=[4])
+        root.mainloop()
+    def grid_forget_all(self):
+        for i in self.Elements:
+            i[0].grid_forget()  
+        root.mainloop()
+    def get_Element(self,index):
+        return self.Elements[index] 
+def Alarmconfirmed(MainButton):
+
+    
+
+    x=time.mktime(time.localtime())
+
+    y=[x,x]
+
+    c.execute('update alarms set approved=? where timer<? and approved is null',y)
+
+    conn.commit()
+
+    MainButton.config(command=SwitchGUI(window, MainButton))
+
+    MainButton.config(background="white")
+
+def AlarmplusHours(Hours):
+    #command for the 
+    c.execute('select timer from alarms where approved is null order by timer asc')
+
+    alarms=c.fetchall()
+
+    for i in alarms:
+
+        seconds=Hours*3600
+
+        x=i[0]
+
+        y=x+seconds
+
+        q=[y,x]
+
+        c.execute('update alarms set timer=? where timer=?',q)
+
+        conn.commit()
+
+
+def SwitchGUI():
+    #switches the GUI to the settings mode
+    CounterButton.grid_forget()
+
+    def Switching_back():
+        #switches back to the main button
+        
+        NextAlarm.grid_forget()
+
+        Alarmplus1day.grid_forget()
+
+        AlarmPlusAnHour.grid_forget()
+
+        AlarmNow.grid_forget()
+
+        CounterButton.grid(row=0,column=0,sticky=E+W+S+N,columnspan=2,rowspan=3)
+
+        window.mainloop()
+   
+    def newalarm(label):
+
+        def count():
+
+        #displays the next alarm in a label next to the buttons
+            #fetches timestamp of the nextalarm and converts it into readable text
+            c.execute('select timer from alarms where approved is null order by timer asc')
+            x=time.ctime(c.fetchall()[0][0])
+            label.configure(text=x)
+
+            label.after(1000, count)
+            window.mainloop()
+
+        count()  
+    #grid the menu 
+    Alarmplus1day.grid(row=0,column=1,sticky=E+W+S+N)
+    AlarmPlusAnHour.grid(row=1,column=1,sticky=E+W+S+N)
+    AlarmNow.grid(row=2,column=1,sticky=E+W+S+N)
+    NextAlarm.grid(row=0,column=0,rowspan=3,sticky=E+W+S+N)
+    window.after(10000,Switching_back)
+    newalarm(NextAlarm)
+    #initiate to switch back after 10 seconds
+    window.after(10000,Switching_back)
+    
+    root.mainloop()
+    
+def counter_Button(Button):
+        #displays the next ALarm and the time remaining
+        c.execute('select timer from alarms where approved is null order by timer asc' )
+
+        x=c.fetchall()[0][0]
+
+        q=list(time.localtime(x))
+
+        gg=str(q[3])+":"+str(q[4])
+
+        def refresh():
+            #refreshes the button every second
+            
+            y=time.mktime(time.localtime())
+
+            z=time.gmtime(x-y)
+
+            Button.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
+
+            Button.after(1000, refresh)
+
+            
+
+        refresh()
+        window.mainloop()
+#sets up the main Button
+CounterButton.configure(command=lambda:SwitchGUI())
+CounterButton.grid(column=0,row=0,sticky=E+W+S+N,rowspan=3,columnspan=2)
+counter_Button(CounterButton)
+
+
+def alarm(window, MainButton):
+
+    
+
+    
+
+    MainButton.config(background="green", command=Alarmconfirmed(MainButton))
+    window.mainloop()
+   
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+def check_for_alarm():
+
+    c.execute('select timer from alarms where approved is null order by timer asc')
+
+    x=c.fetchall()
+
+    c.execute('select timebefore from standard_alarms join alarms on (alarmoftheday=standard_alarms.Id)')
+
+    y=c.fetchone()[0]
+    
+
+    if x[0][0]-y<time.mktime(time.localtime()):
+
+        alarm()
+
+def mainloop():
+
+    while True:
+
+        check_for_alarm()
+
+        c.execute('select loop_duration from standard_settings')
+
+        time.sleep(c.fetchone()[0])
+
+mainloop()

@@ -1,0 +1,5 @@
+MODULES_MANAGER_V2
+Engine.Engine|C:\omaTimer\OmaTimer\Engine\Engine.py
+GUI.__init__|C:\omaTimer\OmaTimer\GUI\__init__.py
+Test.Test|C:\omaTimer\OmaTimer\Test\Test.py
+Test.__init__|C:\omaTimer\OmaTimer\Test\__init__.py
