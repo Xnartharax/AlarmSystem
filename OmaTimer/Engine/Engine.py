@@ -6,11 +6,19 @@ Created on 06.08.2018
 '''
 import sqlite3 as sql
 import time
+
+from requests import *
 conn=sql.connect("../coredata.db")
 
 c=conn.cursor()
-def sendtoserver(approved):
-    pass
+def sendtoserver(timer):
+    c.execute('select server_address from standard_settings ')
+    server_address=c.fetchone()
+    c.execute('select approved from alarms where timer=?',timer)
+    approved=c.fetchone()
+    post("{}/cgi-bin/server.cgi".format(server_address,), data={'approved':approved,'alrmdate':timer})
+    c.execute('update alarms set sendtoserver=1 where timer=?',timer)
+    conn.commit()
 def newalarms():
     c.execute('select * from standard_alarms order by hour desc')
     standard_alarms=c.fetchall()
@@ -41,9 +49,10 @@ def check_for_alarms():
         newalarms()
         sendtoserver(c.fetchall[0][0])
 def mainloop():
-    check_for_alarms()
+    while True:
+        check_for_alarms()
 
-    c.execute('select loop_duration from standard_settings')
+        c.execute('select loop_duration from standard_settings')
 
-    time.sleep(c.fetchone()[0])
-
+        time.sleep(c.fetchone()[0])
+mainloop()

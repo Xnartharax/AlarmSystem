@@ -1,0 +1,14 @@
+DLTK_comment_task_tag=126,140,149
+DLTK_default=182,190,195
+DLTK_doc=85,96,104
+DLTK_keyword=214,38,99
+DLTK_multi_line_comment=85,96,104
+DLTK_number=104,151,187
+DLTK_single_line_comment=85,96,104
+DLTK_string=23,198,163
+eclipse.preferences.version=1
+luadoc.tags=126,140,149
+overriddenByCSS=,DLTK_comment_task_tag,DLTK_default,DLTK_doc,DLTK_keyword,DLTK_multi_line_comment,DLTK_number,DLTK_single_line_comment,DLTK_string,luadoc.tags,sourceHoverBackgroundColor,variable.global,variable.local,
+sourceHoverBackgroundColor=244,245,246
+variable.global=255,255,255
+variable.local=238,157,157
