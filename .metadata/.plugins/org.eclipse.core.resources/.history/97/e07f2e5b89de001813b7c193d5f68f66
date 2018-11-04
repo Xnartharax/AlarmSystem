@@ -15,32 +15,25 @@ c=conn.cursor()
 class Main_Button(tkinter.Button):
     def counter_Button(self):
         #displays the next ALarm and the time remaining
-        c.execute('select timer from alarms where approved is null and timer>{} order by timer asc '.format(str(time.mktime(time.localtime()))))
+        c.execute('select timer from alarms where approved is null order by timer asc' )
 
         x=c.fetchall()[0][0]
         print(x)
         q=list(time.localtime(x))
-        
+
         gg=str(q[3])+":"+str(q[4])
 
         def refresh():
-            print(x)
             #refreshes the button every second
             
-            y=int(time.mktime(time.localtime()))
-            
-            z=time.gmtime(x-y)
-            print(x-y)
-            print(x)
+            y=time.mktime(time.localtime())
             print(y)
-            if x-y>0:
-                print(x-y)
-                self.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
-            else:
-                print(x-y)
-                self.config(text="Alarm")
+            z=time.gmtime(x-y)
+
+            self.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
+
             self.after(1000, refresh)
-            self.master.mainloop() 
+
             
 
         refresh()
@@ -107,7 +100,7 @@ def newalarm(label):
             label.configure(text=x)
             
             label.after(1000, count)
-            label.master.mainloop()
+            label.mainloop()
 
         count()      
         

@@ -16,43 +16,67 @@ def sendtoserver(timer):
     server_address=c.fetchone()
     c.execute('select approved from alarms where timer=?',timer)
     approved=c.fetchone()
-    post("{}/cgi-bin/server.cgi".format(server_address,), data={'approved':approved,'alrmdate':timer})
-    c.execute('update alarms set sendtoserver=1 where timer=?',timer)
-    conn.commit()
+    r=post("{}/cgi-bin/server.cgi".format(server_address,), data={'approved':approved,'alrmdate':timer})
+    try:
+        if r.json()== [approved, timer]:
+            c.execute('update alarms set sendtoserver=1 where timer=?',timer)
+            conn.commit()
+        else:
+            c.execute('update alarms set sendtoserver=2 where timer=?',timer)
+            conn.commit()
+    except:
+        print("no such alarm")
 def newalarms():
+    print("newalarms")
+    #fetching alarm information
     c.execute('select * from standard_alarms order by hour desc')
     standard_alarms=c.fetchall()
-    c.execute('select * from alarms where approved is null order by timer desc')
-    unapproved=c.fetchall()[0][1]
-    localtime=list(time.localtime())
-    c.execute('select alarmoftheday from alarms where unapproved is not null and senttoserver=0 order by timer desc')
-    lastalarm=c.fetchall()[0][0]
-    if lastalarm==len(standard_alarms):
-        alarmoftheday=0
+    #fetching unapproved alarms
+    c.execute('select timer from alarms where approved is null order by timer desc')
+    unapproved=c.fetchall()[0][0]
+    #fetching alarmoftheday of last approved alarm    
+    c.execute('select alarmoftheday from alarms where approved is not null and sendtoserver=0 order by timer desc')
+    if len(c.fetchall())>0:
+        lastalarm=c.fetchall()[0][0]
+    
+        if lastalarm==len(standard_alarms):
+            alarmoftheday=0
+        else:
+            alarmoftheday=lastalarm+1
     else:
-        alarmoftheday=lastalarm
-    i=standard_alarms[alarmoftheday] 
+        alarmoftheday=1
+    i=standard_alarms[alarmoftheday-1] 
+    
+    localtime=list(time.localtime())
     localtime[3]=i[1]
     localtime[4]=i[2]        
     new_timer=time.mktime(tuple(localtime))
-
+    
     while unapproved>new_timer:
-            new_timer+24*3600
-    q=[]
-    q.append(alarmoftheday)
-    q.append(new_timer)
+        
+        #pushing next timer after next unapproved alarm
+        new_timer=new_timer+24*3600
+            
+    #writing the alarm in db     
+    q=[alarmoftheday,new_timer]  
     c.execute('insert into alarms values(?,?,NULL,0)',q)
     conn.commit()
-def check_for_alarms(): 
+    print("end new alarms")
+def check_for_approved_alarms(): 
     c.execute('select approved from alarms where approved is not null and sendtoserver=0')
     if len(c.fetchall())==1:
         newalarms()
         sendtoserver(c.fetchall[0][0])
+
 def mainloop():
+    print("mainloop")
     while True:
-        check_for_alarms()
+        print("new loop")
+        check_for_approved_alarms()
 
         c.execute('select loop_duration from standard_settings')
 
         time.sleep(c.fetchone()[0])
+        print("end loop")
+newalarms()
 mainloop()
