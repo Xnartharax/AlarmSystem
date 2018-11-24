@@ -39,7 +39,7 @@ def AlarmNow():
     c.execute('select server_address from standard_settings ')
     server_address=c.fetchone()
     r=requests.post("{}/cgi-bin/emergency.cgi".format(server_address,), data={'timer':time.mktime(time.localtime())})
-
+    
 
 def AlarmplusHours(Hours):
      

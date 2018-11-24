@@ -8,10 +8,11 @@ Created on 15.09.2018
 import tkinter
 import sqlite3 as sql
 import time
-from tkinter import *
+from tkinter import N, W, E, S
 import threading
 conn=sql.connect("../coredata.db")
 c=conn.cursor()
+
 class Main_Button(tkinter.Button):
     def counter_Button(self):
         #displays the next ALarm and the time remaining
@@ -24,26 +25,27 @@ class Main_Button(tkinter.Button):
         gg=str(q[3])+":"+str(q[4])
 
         def refresh():
-            print(x)
-            #refreshes the button every second
+            while True:
+                #refreshes the button every second
             
-            y=int(time.mktime(time.localtime()))
+                y=int(time.mktime(time.localtime()))
             
-            z=time.gmtime(x-y)
-            print(x-y)
-            print(x)
-            print(y)
-            if x-y>0:
-                print(x-y)
-                self.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
-            else:
-                print(x-y)
-                self.config(text="Alarm")
-            self.after(1000, refresh)
-            self.master.mainloop() 
+                z=time.gmtime(x-y)
+                
+                if x-y>0:
+                    print(x-y)
+                    self.config(text=gg+"\n"+str(z[3])+":"+str(z[4])+":"+str(z[5]))
+                else:
+                    print(x-y)
+                    self.config(text="Alarm")
             
+                self.master.mainloop() 
+                time.sleep(0.5)
+        Refresher = threading.Thread(target=refresh)
+        Refresher.start()
+        Refresher.run()
 
-        refresh()
+        
         self.master.mainloop() 
 class GUI():
     def __init__(self,root):
@@ -99,15 +101,17 @@ def SwitchGUI(master, oldGUI, newGUI, timetoswitchback,switchback, label):
 def newalarm(label):
         print("newalarm")
         def count():
-
-        #displays the next alarm in a label next to the buttons
-            #fetches timestamp of the nextalarm and converts it into readable text
-            c.execute('select timer from alarms where approved is null order by timer asc')
-            x=time.ctime(c.fetchall()[0][0])
-            label.configure(text=x)
+            while True:
+                #displays the next alarm in a label next to the buttons
+                #fetches timestamp of the nextalarm and converts it into readable text
+                c.execute('select timer from alarms where approved is null order by timer asc')
+                x=time.ctime(c.fetchall()[0][0])
+                label.configure(text=x)
             
-            label.after(1000, count)
-            label.master.mainloop()
+                label.after(1000, count)
+                label.master.mainloop()
 
-        count()      
+        Refresher=threading.Thread(target=count)
+        Refresher.start()
+        Refresher.run()      
         
