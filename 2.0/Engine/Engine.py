@@ -10,8 +10,6 @@ import time
 from requests import *
 
 
-
-
 class Engine:
 
     def __init__(self, db_path):
@@ -90,6 +88,9 @@ class My_connection:
     def send_alive(self, timer):
 
         r = post('http://'+self.server_url + '/cgi-bin/alive.py', data={'timer': timer})
+        if r.status_code != 200:
+            print('server not working')
+
 
     def get_unsent_approved_alarms(self):
 
