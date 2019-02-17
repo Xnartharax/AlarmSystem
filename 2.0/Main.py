@@ -1,3 +1,7 @@
+from requests import *
+import sqlite3 as sql
+import time
+
 import sqlite3 as sql
 import time
 from kivy.clock import Clock
@@ -6,8 +10,13 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 import requests
-conn = sql.connect("../coredata.db")
+from Connection import MyConnection
+
+
+
+conn = sql.connect("./coredata.db")
 c = conn.cursor()
+myconn = MyConnection("./coredata.db")
 
 
 class MenuGUI(BoxLayout):
@@ -25,23 +34,20 @@ class MainButton(Button):
 
         super().__init__()
         self.refresher = Clock.schedule_interval(self.refresh, 1 / 4)
-        self.alarmState= False
+        self.alarmState = False
 
     def refresh(self, dt):
 
-        c.execute('select timer from alarms where approved is null order by timer asc')
-        time_diff = 0
         try:
-            nextalarm = c.fetchall()[0][0]
+            nextalarm = myconn.get_unapproved_alarms()[0]
             timenow = time.localtime()
             nowseconds = time.mktime(timenow)
             time_diff = nextalarm-nowseconds
 
             if time_diff > 0:
-                hours = str(time.localtime(time_diff)[3])
-                minutes = str(time.localtime(time_diff)[4])
-                print(hours+":"+minutes)
-                self.text = hours+':'+minutes
+                hours = round(time_diff/3600)
+                minutes = round((time_diff % 3600)/ 60)
+                self.text = '{} : {}'.format(hours, minutes)
                 c.execute('''select timetoconfirm from standard_settings''')
                 timebefore = c.fetchone()[0]
 
@@ -83,8 +89,6 @@ class NewAlarmLabel(Label):
 
     def refresh(self, dt):
 
-        conn = sql.connect("../coredata.db")
-        c = conn.cursor()
         c.execute('select timer from alarms where approved is null order by timer asc')
         try:
             newtimer = time.ctime(c.fetchall()[0][0])
@@ -96,7 +100,7 @@ class NewAlarmLabel(Label):
 
 class MenuButton(Button):
 
-    def __init__(self, hours,):
+    def __init__(self, hours):
 
         super().__init__()
         self.hours = hours
@@ -118,8 +122,8 @@ class MainGUI(BoxLayout):
     def __init__(self):
 
         super().__init__()
-        main_button= MainButton()
-        self.old_gui=main_button
+        main_button = MainButton()
+        self.old_gui = main_button
         self.add_widget(main_button)
 
     def switch_gui(self, GUI, switchback=True, switchbacktime=10):
@@ -162,14 +166,57 @@ class AlarmNowButton(Button):
     def __init__(self):
         super().__init__()
         self.text = 'Alarm auslösen'
-        self.background_color=(1,0,0,1)
+        self.background_color = (1, 0, 0, 1)
 
     def on_press(self):
-        c.execute('''select server_address from standard_settings ''')
+        myconn.get_standard_settings()[1]
         server_address = c.fetchone()[0]
         r = requests.post('http://{}/cgi-bin/emergency.cgi'.format(server_address), data={'timer': time.mktime(time.localtime())})
+        if r.status_code != 200:
+            send_again = lambda x: self.on_press()
+            Clock.schedule_once(send_again, 1)
 
 
-alarm_gui = AlarmGUI()
-alarm_gui.run()
+class Engine:
+
+    def __init__(self, conn):
+        self.conn = conn
+        main_engine = lambda x: self.mainloop()
+        sleep_duration = self.conn.get_standard_settings()[2]
+        Clock.schedule_interval(main_engine, sleep_duration)
+
+    def mainloop(self):
+        if len(self.conn.get_unapproved_alarms()) == 0:
+                self.new_alarms()
+
+        unsent_approved = self.conn.get_unsent_approved_alarms()
+
+        for unsent in unsent_approved:
+                self.conn.send_approved_alarms(approved=unsent[1], timer=unsent[0])
+        unsent_new = self.conn.get_unsent_new_alarms()
+        for unsent in unsent_new:
+            self.conn.send_new_alarms(unsent)
+
+    def new_alarms(self):
+
+        standard_alarms = self.conn.get_standard_alarms()
+        for standard_alarm in standard_alarms:
+            self.conn.insert_new_alarm(self.make_new_alarm(standard_alarm[0], standard_alarm[1]))
+
+    def make_new_alarm(self, hour, minute):
+
+        timer = list(time.localtime())
+        timer[3] = hour
+        timer[4] = minute
+        seconds = time.mktime(tuple(timer))
+        last_alarm = self.conn.get_last_alarm()
+        while seconds <= last_alarm:
+            seconds += 24*3600
+        return seconds
+
+
+engine = Engine(myconn)
+Alarmgui = AlarmGUI()
+Alarmgui.run()
+engine.mainloop()
 
