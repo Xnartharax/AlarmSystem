@@ -2,13 +2,16 @@
 import RPi.GPIO as GPIO
 import time
 
-BuzzerPin = 11    # pin11
+BuzzerPin = 32    # pin11
+voltagePin = 29
 
 
 def setup():
     GPIO.setmode(GPIO.BOARD)       # Numbers GPIOs by physical location
     GPIO.setup(BuzzerPin, GPIO.OUT)
     GPIO.output(BuzzerPin, GPIO.LOW)
+    GPIO.setup(voltagePin, GPIO.OUT)
+    GPIO.output(voltagePin, GPIO.HIGH)
 
 
 def loop():
