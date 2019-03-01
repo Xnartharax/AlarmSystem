@@ -11,7 +11,7 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 import requests
 from Connection import MyConnection
-
+import RPi.GPIO as GPIO
 
 
 conn = sql.connect("./coredata.db")
@@ -46,7 +46,7 @@ class MainButton(Button):
 
             if time_diff > 0:
                 hours = round(time_diff/3600)
-                minutes = round((time_diff % 3600)/ 60)
+                minutes = round((time_diff % 3600) / 60)
                 self.text = '{} : {}'.format(hours, minutes)
                 c.execute('''select timetoconfirm from standard_settings''')
                 timebefore = c.fetchone()[0]
@@ -55,7 +55,7 @@ class MainButton(Button):
                     self.color = (0, 1, 0, 1)
                     if not self.alarmState:
                         self.alarmState = True
-                        self.alarm = Clock.schedule_once(self.on_alarm, timebefore * 60)
+                        self.alarm = Clock.schedule_once(self.on_alarm, time_diff * 60)
         except IndexError:
             pass
             #print("no valid alarm")
@@ -64,20 +64,28 @@ class MainButton(Button):
         if self.alarmState:
             c.execute('select timer from alarms where approved is null order by timer asc')
             alarm_timer = c.fetchall()[0][0]
-            data=[time.mktime(time.localtime()),alarm_timer]
+            data = [time.mktime(time.localtime()), alarm_timer]
             c.execute('update alarms set approved=? where timer=?', data)
             conn.commit()
             self.alarm.cancel()
+
             self.alarmState = False
 
         else:
 
             self.parent.switch_gui(MenuGUI())
 
-
     def on_alarm(self, dt):
 
-        print("ALARM!!!!")
+        BuzzerPin = 32
+        voltagePin = 29
+        # setup
+        GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+        GPIO.setup(BuzzerPin, GPIO.OUT)
+        GPIO.output(BuzzerPin, GPIO.LOW)
+        GPIO.setup(voltagePin, GPIO.OUT)
+        GPIO.output(voltagePin, GPIO.HIGH)
+        GPIO.output(BuzzerPin, GPIO.HIGH)
 
 
 class NewAlarmLabel(Label):
