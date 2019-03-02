@@ -11,7 +11,7 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 import requests
 from Connection import MyConnection
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 
 
 conn = sql.connect("./coredata.db")
@@ -72,20 +72,20 @@ class MainButton(Button):
             self.alarmState = False
 
         else:
-
             self.parent.switch_gui(MenuGUI())
 
     def on_alarm(self, dt):
-
-        BuzzerPin = 32
-        voltagePin = 29
-        # setup
-        GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-        GPIO.setup(BuzzerPin, GPIO.OUT)
-        GPIO.output(BuzzerPin, GPIO.LOW)
-        GPIO.setup(voltagePin, GPIO.OUT)
-        GPIO.output(voltagePin, GPIO.HIGH)
-        GPIO.output(BuzzerPin, GPIO.HIGH)
+         pass
+    #
+    #     BuzzerPin = 32
+    #     voltagePin = 29
+    #     # setup
+    #     GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+    #     GPIO.setup(BuzzerPin, GPIO.OUT)
+    #     GPIO.output(BuzzerPin, GPIO.LOW)
+    #     GPIO.setup(voltagePin, GPIO.OUT)
+    #     GPIO.output(voltagePin, GPIO.HIGH)
+    #     GPIO.output(BuzzerPin, GPIO.HIGH)
 
 
 class NewAlarmLabel(Label):
@@ -177,8 +177,7 @@ class AlarmNowButton(Button):
         self.background_color = (1, 0, 0, 1)
 
     def on_press(self):
-        myconn.get_standard_settings()[1]
-        server_address = c.fetchone()[0]
+        server_address = myconn.get_standard_settings()[1]
         r = requests.post('http://{}/cgi-bin/emergency.cgi'.format(server_address), data={'timer': time.mktime(time.localtime())})
         if r.status_code != 200:
             send_again = lambda x: self.on_press()
