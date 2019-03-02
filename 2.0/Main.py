@@ -35,6 +35,7 @@ class MainButton(Button):
         super().__init__()
         self.refresher = Clock.schedule_interval(self.refresh, 1 / 4)
         self.alarmState = False
+        self.font_size = 160
 
     def refresh(self, dt):
 
@@ -103,7 +104,7 @@ class NewAlarmLabel(Label):
         except IndexError:
             newtimer = "no new alarm"
         #print(newtimer)
-        self.text=newtimer
+        self.text = newtimer
 
 
 class MenuButton(Button):
@@ -112,7 +113,8 @@ class MenuButton(Button):
 
         super().__init__()
         self.hours = hours
-        self.text = "Alarm um {} Stunden verschieben".format(str(hours))
+        self.text = "+{}h".format(str(hours))
+        self.font_size = 40
 
     def on_press(self):
         c.execute('select timer from alarms where approved is null order by timer asc')
@@ -173,12 +175,13 @@ class AlarmNowButton(Button):
 
     def __init__(self):
         super().__init__()
-        self.text = 'Alarm auslösen'
+        self.text = '!'
         self.background_color = (1, 0, 0, 1)
+        self.font_size = 50
 
     def on_press(self):
         server_address = myconn.get_standard_settings()[1]
-        r = requests.post('http://{}/cgi-bin/emergency.cgi'.format(server_address), data={'timer': time.mktime(time.localtime())})
+        r = requests.post('http://{}/cgi-bin/emergency.py'.format(server_address), data={'timer': time.mktime(time.localtime())})
         if r.status_code != 200:
             send_again = lambda x: self.on_press()
             Clock.schedule_once(send_again, 1)
@@ -225,5 +228,5 @@ class Engine:
 engine = Engine(myconn)
 Alarmgui = AlarmGUI()
 Alarmgui.run()
-engine.mainloop()
+
 

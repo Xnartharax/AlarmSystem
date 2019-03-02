@@ -1,5 +1,18 @@
-from requests import *
+
 import sqlite3 as sql
+from kivy.network.urlrequest import UrlRequest
+
+
+def post(url, data={}):
+    urlstring = url
+    if len(data) > 0:
+        urlstring += '?'
+    for i, (key, value) in enumerate(data.items()):
+        urlstring += str(key)+'='+str(value)
+        if i != len(data)-1:
+            urlstring += '&'
+    r = UrlRequest(urlstring)
+    return r
 
 
 class MyConnection:
@@ -11,7 +24,7 @@ class MyConnection:
     def send_approved_alarms(self, timer, approved):
 
         r = post('http://'+self.server_url+'/cgi-bin/approved.py', data={'timer': timer, 'approved': approved})
-        if r.status_code == 200:
+        if r.resp_status == 200:
             self.conn.execute('''update alarms set sendtoserver=3 where timer=?''', [timer]).fetchall()
         else:
             self.conn.execute('''update alarms set sendtoserver=2 where timer=?''', [timer]).fetchall()
@@ -20,8 +33,7 @@ class MyConnection:
     def send_new_alarms(self, timer):
 
         r = post('http://'+self.server_url + '/cgi-bin/new_alarm.py', data={'timer': timer})
-        if r.status_code == 200:
-
+        if r.resp_status == 200:
             self.conn.execute('''update alarms set sendtoserver=1 where timer=?''', [timer]).fetchall()
 
         else:
@@ -31,13 +43,13 @@ class MyConnection:
     def send_emergeny(self, timer):
 
         r = post('http://'+self.server_url + '/cgi-bin/new_alarm.py', data={'timer': timer})
-        while r.status_code !=200:
-            r = post('http://' + self.server_url + '/cgi-bin/new_alarm.py', data={'timer': timer})
+
+        r = post('http://' + self.server_url + '/cgi-bin/new_alarm.py', data={'timer': timer})
 
     def send_alive(self, timer):
 
         r = post('http://'+self.server_url + '/cgi-bin/alive.py', data={'timer': timer})
-        if r.status_code != 200:
+        if r.resp_status != 200:
             print('server not working')
 
     def get_unsent_approved_alarms(self):
