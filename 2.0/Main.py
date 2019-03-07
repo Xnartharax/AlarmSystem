@@ -11,12 +11,26 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 import requests
 from Connection import MyConnection
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 conn = sql.connect("./coredata.db")
 c = conn.cursor()
 myconn = MyConnection("./coredata.db")
+
+BuzzerPin = 32
+voltagePin = 29
+    # setup
+GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.LOW)
+GPIO.setup(voltagePin, GPIO.OUT)
+GPIO.output(voltagePin, GPIO.HIGH)
+
+
+def make_sound():
+    GPIO.output(BuzzerPin, GPIO.HIGH)
+    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
 
 
 class MenuGUI(BoxLayout):
@@ -76,17 +90,7 @@ class MainButton(Button):
             self.parent.switch_gui(MenuGUI())
 
     def on_alarm(self, dt):
-         pass
-    #
-    #     BuzzerPin = 32
-    #     voltagePin = 29
-    #     # setup
-    #     GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-    #     GPIO.setup(BuzzerPin, GPIO.OUT)
-    #     GPIO.output(BuzzerPin, GPIO.LOW)
-    #     GPIO.setup(voltagePin, GPIO.OUT)
-    #     GPIO.output(voltagePin, GPIO.HIGH)
-    #     GPIO.output(BuzzerPin, GPIO.HIGH)
+        make_sound()
 
 
 class NewAlarmLabel(Label):
@@ -117,14 +121,18 @@ class MenuButton(Button):
         self.font_size = 40
 
     def on_press(self):
-        c.execute('select timer from alarms where approved is null order by timer asc')
-        alarms = c.fetchall()
+
+        alarms = myconn.get_unapproved_alarms()
         print(alarms)
         for alarm in alarms:
-            newtimer = alarm[0]+self.hours*3600
-            timers = [newtimer, alarm[0]]
-            c.execute('''update alarms set timer=? where timer=?''',timers)
-        conn.commit()
+            newtimer = alarm+self.hours*3600
+            timers = [newtimer, alarm]
+            c.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
+            conn.commit()
+            def send_alarm():
+                if not myconn.update_alarms(alarm, newtimer):
+                    Clock.schedule_once(lambda x: send_alarm)
+            send_alarm()
 
 
 class MainGUI(BoxLayout):
@@ -180,11 +188,13 @@ class AlarmNowButton(Button):
         self.font_size = 50
 
     def on_press(self):
-        server_address = myconn.get_standard_settings()[1]
-        r = requests.post('http://{}/cgi-bin/emergency.py'.format(server_address), data={'timer': time.mktime(time.localtime())})
-        if r.status_code != 200:
-            send_again = lambda x: self.on_press()
-            Clock.schedule_once(send_again, 1)
+        def send(dt):
+            server_address = myconn.get_standard_settings()[1]
+            r = requests.post('http://{}/cgi-bin/emergency.py'.format(server_address), data={'timer': time.mktime(time.localtime())})
+            if r.status_code != 200:
+
+                Clock.schedule_once(send, 1)
+        GPIO.output(BuzzerPin, GPIO.HIGH)
 
 
 class Engine:
