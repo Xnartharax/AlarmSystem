@@ -23,13 +23,13 @@ voltagePin = 29
     # setup
 GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
 GPIO.setup(BuzzerPin, GPIO.OUT)
-GPIO.output(BuzzerPin, GPIO.LOW)
+GPIO.output(BuzzerPin, GPIO.HIGH)
 GPIO.setup(voltagePin, GPIO.OUT)
-GPIO.output(voltagePin, GPIO.HIGH)
+GPIO.output(voltagePin, GPIO.LOW)
 
 
 def make_sound():
-    GPIO.output(BuzzerPin, GPIO.HIGH)
+    GPIO.output(voltagePin, GPIO.HIGH)
     Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
 
 
