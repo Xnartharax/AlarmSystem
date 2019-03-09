@@ -127,11 +127,12 @@ class MenuButton(Button):
         for alarm in alarms:
             newtimer = alarm+self.hours*3600
             timers = [newtimer, alarm]
+            print(newtimer)
             c.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
             conn.commit()
             myconn.update_alarms(alarm, newtimer)
 
-          
+
 class MainGUI(BoxLayout):
 
     def __init__(self):
