@@ -129,12 +129,9 @@ class MenuButton(Button):
             timers = [newtimer, alarm]
             c.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
             conn.commit()
-            def send_alarm():
-                if not myconn.update_alarms(alarm, newtimer):
-                    Clock.schedule_once(lambda x: send_alarm)
-            send_alarm()
+            myconn.update_alarms(alarm, newtimer)
 
-
+          
 class MainGUI(BoxLayout):
 
     def __init__(self):

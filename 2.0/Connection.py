@@ -3,11 +3,11 @@ import sqlite3 as sql
 from kivy.network.urlrequest import UrlRequest
 
 
-def post(url, data={}):
+def post(url, on_succ, on_fail, data={}):
     urlstring = url
     query = urllib.parse.urlencode(data)
-    r = UrlRequest(urlstring, req_body=query)
-    r.wait()
+
+    r = UrlRequest(urlstring, req_body=query, on_failure=on_fail, on_success=on_succ)
     return r
 
 
@@ -18,44 +18,70 @@ class MyConnection:
         self.server_url = self.get_standard_settings()[1]
 
     def send_approved_alarms(self, timer, approved):
+        tries = 0
 
-        r = post('http://'+self.server_url+'/cgi-bin/approved.py', data={'timer': timer, 'approved': approved, 'device_id': 1})
-        if r.resp_status == 200:
+        def on_succ():
             self.conn.execute('''update alarms set sendtoserver=3 where timer=?''', [timer]).fetchall()
-            x = True
-        else:
+            self.conn.commit()
+
+        def on_fail():
+            nonlocal tries
             print('connection not working')
             self.conn.execute('''update alarms set sendtoserver=2 where timer=?''', [timer]).fetchall()
-            x = False
-        self.conn.commit()
-        return x
+            self.conn.commit()
+            print('connection failed: trying again: ' + tries)
+            if tries < 5:
+                r = post('http://'+self.server_url+'/cgi-bin/approved.py', data={'timer': timer, 'approved': approved, 'device_id': 1}, on_succ=on_succ,
+                         on_fail=on_fail)
+                tries += 1
+
+        r = post('http://'+self.server_url+'/cgi-bin/approved.py', data={'timer': timer, 'approved': approved, 'device_id': 1}, on_succ=on_succ,
+                 on_fail=on_fail)
 
     def send_new_alarms(self, timer):
+        tries = 0
 
-        r = post('http://'+self.server_url + '/cgi-bin/new_alarm.py', data={'timer': timer, 'device_id':1})
-        if r.resp_status == 200:
+        def on_succ():
             self.conn.execute('''update alarms set sendtoserver=1 where timer=?''', [timer]).fetchall()
-            x = True
-        else:
+            self.conn.commit()
+
+        def on_fail():
+            nonlocal tries
             print('connection not working')
             self.conn.execute('''update alarms set sendtoserver=0 where timer=?''', [timer]).fetchall()
-            x = False
-        self.conn.commit()
-        return x
+            self.conn.commit()
+            print('connection failed: trying again: ' + tries)
+            if tries < 5:
+                r = post('http://' + self.server_url + '/cgi-bin/new_alarm.py',
+                         ddata={'timer': timer, 'device_id':1}, on_succ=on_succ,
+                         on_fail=on_fail)
+                tries += 1
+
+        r = post('http://' + self.server_url + '/cgi-bin/new_alarm.py',
+                 data={'timer': timer, 'device_id': 1}, on_succ=on_succ,
+                 on_fail=on_fail)
 
     def update_alarms(self, old_timer, new_timer):
+        tries = 0
 
-        r = post('http://' + self.server_url + '/cgi-bin/change_alarm_time.py',
-                 data={'new_timer': new_timer, 'old_timer': old_timer, 'device_id': 1})
-        if r.resp_status == 200:
+        def on_succ():
             self.conn.execute('''update alarms set sendtoserver=1 where timer=?''', [new_timer]).fetchall()
-            x = True
-        else:
+
+        def on_fail():
+            nonlocal tries
             print('connection not working')
-            x = False
             self.conn.execute('''update alarms set sendtoserver=5 where timer=?''', [new_timer]).fetchall()
+            print('connection failed: trying again: '+tries)
+            if tries < 5:
+                r = post('http://' + self.server_url + '/cgi-bin/change_alarm_time.py',
+                     data={'new_timer': new_timer, 'old_timer': old_timer, 'device_id': 1}, on_succ=on_succ,
+                     on_fail=on_fail)
+                tries += 1
+        r = post('http://' + self.server_url + '/cgi-bin/change_alarm_time.py',
+                 data={'new_timer': new_timer, 'old_timer': old_timer, 'device_id': 1}, on_succ=on_succ,
+                 on_fail=on_fail)
+
         self.conn.commit()
-        return x
 
     def send_emergeny(self, emergency_level):
 
