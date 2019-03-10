@@ -11,26 +11,26 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 import requests
 from Connection import MyConnection
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 
 
 conn = sql.connect("./coredata.db")
 c = conn.cursor()
 myconn = MyConnection("./coredata.db")
 
-BuzzerPin = 32
-voltagePin = 29
-    # setup
-GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-GPIO.setup(BuzzerPin, GPIO.OUT)
-GPIO.output(BuzzerPin, GPIO.HIGH)
-GPIO.setup(voltagePin, GPIO.OUT)
-GPIO.output(voltagePin, GPIO.LOW)
+# BuzzerPin = 32
+# voltagePin = 29
+#     # setup
+# GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+# GPIO.setup(BuzzerPin, GPIO.OUT)
+# GPIO.output(BuzzerPin, GPIO.HIGH)
+# GPIO.setup(voltagePin, GPIO.OUT)
+# GPIO.output(voltagePin, GPIO.LOW)
 
 
-def make_sound():
-    GPIO.output(voltagePin, GPIO.HIGH)
-    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
+# def make_sound():
+#     GPIO.output(voltagePin, GPIO.HIGH)
+#     Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
 
 
 class MenuGUI(BoxLayout):
@@ -90,7 +90,8 @@ class MainButton(Button):
             self.parent.switch_gui(MenuGUI())
 
     def on_alarm(self, dt):
-        make_sound()
+        pass
+        # make_sound()
 
 
 class NewAlarmLabel(Label):
@@ -192,7 +193,7 @@ class AlarmNowButton(Button):
             if r.status_code != 200:
 
                 Clock.schedule_once(send, 1)
-        GPIO.output(BuzzerPin, GPIO.HIGH)
+        # GPIO.output(BuzzerPin, GPIO.HIGH)
 
 
 class Engine:
