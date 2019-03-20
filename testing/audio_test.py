@@ -1,35 +1,16 @@
 #!/usr/bin/env python
-import RPi.GPIO as GPIO
+from kivy.network.urlrequest import UrlRequest
+from kivy.clock import Clock
+
 import time
 
-BuzzerPin = 32    # pin11
-voltagePin = 29
+import urllib
 
+def bug_posted(req, result):
+   print('gg')
 
-def setup():
-    GPIO.setmode(GPIO.BOARD)       # Numbers GPIOs by physical location
-    GPIO.setup(BuzzerPin, GPIO.OUT)
-    GPIO.output(BuzzerPin, GPIO.LOW)
-    GPIO.setup(voltagePin, GPIO.OUT)
-    GPIO.output(voltagePin, GPIO.HIGH)
+def on_fail(req, res):
+    print('failed')
 
+req = UrlRequest('https://www.python.org', on_success=bug_posted, on_failure=on_fail)
 
-def loop():
-    while True:
-        GPIO.output(BuzzerPin, GPIO.HIGH)
-        time.sleep(0.5)
-        GPIO.output(BuzzerPin, GPIO.LOW)
-        time.sleep(0.5)
-
-
-def destroy():
-    GPIO.output(BuzzerPin, GPIO.LOW)
-    GPIO.cleanup()                     # Release resource
-
-
-if __name__ == '__main__':     # Program start from here
-    setup()
-    try:
-        loop()
-    except KeyboardInterrupt:  # When 'Ctrl+C' is pressed, the child program destroy() will be  executed.
-        destroy()
