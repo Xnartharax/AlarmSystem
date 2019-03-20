@@ -93,8 +93,18 @@ class MyConnection:
         self.conn.commit()
 
     def send_emergeny(self, emergency_level):
+        '''
+        level
+        1 Alarm nicht gedrückt piepse
+        2 versuche Überwachten zu erreichen
+        3 verständige zugewiesene Nummern
+        4 Alarm wurde Aktiv gedrückz
+        :param emergency_level:
+        :return: None
+        '''
 
         def on_fail(req, res):
+            print('alarm sending failed trying again')
             Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}))
 
         def on_succ(req, res):

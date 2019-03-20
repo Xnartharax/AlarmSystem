@@ -9,6 +9,7 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.pagelayout import PageLayout
 import requests
 from Connection import MyConnection
 # import RPi.GPIO as GPIO
@@ -86,9 +87,6 @@ class MainButton(Button):
 
             self.alarmState = False
 
-        else:
-            self.parent.switch_gui(MenuGUI())
-
     def on_alarm(self, dt):
         #make_sound()
         print('alarm')
@@ -134,33 +132,13 @@ class MenuButton(Button):
             myconn.update_alarms(alarm, newtimer)
 
 
-class MainGUI(BoxLayout):
+class MainGUI(PageLayout):
 
     def __init__(self):
 
         super().__init__()
-        main_button = MainButton()
-        self.old_gui = main_button
-        self.add_widget(main_button)
-
-    def switch_gui(self, GUI, switchback=True, switchbacktime=10):
-
-        self.remove_widget(self.old_gui)
-        self.add_widget(GUI)
-        print('switched gui')
-        if switchback:
-            print('set up switch back')
-            old_gui = self.old_gui
-            switching_back = lambda x: self.switch_back(old_gui)
-            Clock.schedule_once(switching_back, switchbacktime)
-        self.old_gui = GUI
-
-    def switch_back(self, old_GUI):
-        print('switching back')
-        self.remove_widget(self.old_gui)
-        self.add_widget(old_GUI)
-        self.old_gui = old_GUI
-
+        self.add_widget(MainButton())
+        self.add_widget(MenuButtons())
 
 class AlarmGUI(App):
 
@@ -189,10 +167,7 @@ class AlarmNowButton(Button):
     def on_press(self):
         def send(dt):
             server_address = myconn.get_standard_settings()[1]
-            r = requests.post('http://{}/cgi-bin/emergency.py'.format(server_address), data={'timer': time.mktime(time.localtime())})
-            if r.status_code != 200:
-
-                Clock.schedule_once(send, 1)
+            myconn.send_emergency(4)
         # make_sound()
 
 
