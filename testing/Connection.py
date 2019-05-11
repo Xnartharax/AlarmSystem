@@ -155,6 +155,10 @@ class MyConnection:
         alarms = self.conn.execute('''select * from standard_alarms''').fetchall()
         return alarms
 
+    def get_escalating_levels(self):
+        levels = self.conn.execute('''select time_to_escalate from escalation_levels''').fetchall()
+        return levels
+
     def get_last_alarm(self):
 
         alarms = self.conn.execute('''select timer from alarms order by timer asc''').fetchall()

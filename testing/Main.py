@@ -9,9 +9,10 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
+from kivy.config import Config
 
 from Connection import MyConnection
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 myconn = MyConnection('coredata.db')
 # Create both screens. Please note the root.manager.current: this is how
@@ -19,7 +20,43 @@ myconn = MyConnection('coredata.db')
 # property manager that gives you the instance of the ScreenManager used.
 conn = sql.connect("./coredata.db")
 c = conn.cursor()
+
+voltagePin = 29
+BuzzerPin = 32
 # Declare both screens
+    # setup
+GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.HIGH)
+GPIO.setup(voltagePin, GPIO.OUT)
+GPIO.output(voltagePin, GPIO.LOW)
+
+
+def make_sound():
+    GPIO.output(voltagePin, GPIO.HIGH)
+    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
+
+
+class Alarm:
+    def __init__(self):
+        self.escalate_times = myconn.get_escalating_levels()
+        self.levels = [None, None, None]
+
+    def escalate1(self):
+        self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 1), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
+
+    def escalate2(self):
+        self.levels[1] = (Clock.schedule_once(lambda x: myconn.send_emergency(2), 1), Clock.schedule_once(lambda x: self.escalate3(), self.escalate_times[1][0]))
+
+    def escalate3(self):
+        self.levels[1] = (Clock.schedule_once(lambda x: myconn.send_emergency(3), 1), Clock.schedule_once(lambda x: myconn.send_emergency(3), 1))
+
+    def deescalate(self):
+        for escalation in self.levels:
+            if not escalation is None:
+                escalation[0].cancel()
+                escalation[1].cancel()
+
 
 class MainButton(Button):
 
@@ -29,6 +66,7 @@ class MainButton(Button):
         self.refresher = Clock.schedule_interval(self.refresh, 1 / 4)
         self.alarmState = False
         self.font_size = 160
+        self.AlarmObject = None
 
     def refresh(self, dt):
 
@@ -50,11 +88,16 @@ class MainButton(Button):
                     if not self.alarmState:
                         self.alarmState = True
                         self.alarm = Clock.schedule_once(self.on_alarm, time_diff * 60)
+            else:
+                self.text = "ALARM!!!!"
         except IndexError:
             pass
             #print("no valid alarm")
 
     def on_press(self):
+        if not self.AlarmObject is None:
+            self.AlarmObject.deescalate
+            self.AlarmObject = None
         if self.alarmState:
             c.execute('select timer from alarms where approved is null order by timer asc')
             alarm_timer = c.fetchall()[0][0]
@@ -70,8 +113,8 @@ class MainButton(Button):
             Clock.schedule_once(switchback, 10)
 
     def on_alarm(self, dt):
-        #make_sound()
         print('alarm')
+        self.AlarmObject = Alarm()
 
 
 class MainButtonScreen(Screen):
@@ -143,6 +186,7 @@ class MenuButton(Button):
             c.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
             conn.commit()
             myconn.update_alarms(alarm, newtimer)
+
 
 class AlarmNowButton(Button):
 
