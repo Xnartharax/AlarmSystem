@@ -102,7 +102,7 @@ class MainButton(Button):
 
     def on_press(self):
         if not self.AlarmObject is None:
-            self.AlarmObject.deescalate
+            self.AlarmObject.deescalate()
             self.AlarmObject = None 
         if self.alarmState:
 
