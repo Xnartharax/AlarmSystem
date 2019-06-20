@@ -27,12 +27,12 @@ GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
 GPIO.setup(BuzzerPin, GPIO.OUT)
 GPIO.output(BuzzerPin, GPIO.HIGH)
 GPIO.setup(voltagePin, GPIO.OUT)
-GPIO.output(voltagePin, GPIO.LOW)
+GPIO.output(voltagePin, GPIO.HIGH)
 
 
 def make_sound():
-    GPIO.output(voltagePin, GPIO.HIGH)
-    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
+    GPIO.output(BuzzerPin, GPIO.LOW)
+    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.HIGH), 2)
 
 
 class Alarm:
@@ -42,7 +42,7 @@ class Alarm:
 
     def escalate1(self):
         print("level 1")
-        self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 1), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
+        self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 4), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
 
     def escalate2(self):
         print("level 2")
