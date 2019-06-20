@@ -1,4 +1,5 @@
 import urllib
+import time
 import sqlite3 as sql
 from kivy.network.urlrequest import UrlRequest
 from kivy.clock import Clock
@@ -92,7 +93,7 @@ class MyConnection:
 
         self.conn.commit()
 
-    def send_emergeny(self, emergency_level):
+    def send_emergency(self, emergency_level):
         '''
         level
         1 Alarm nicht gedrückt piepse
@@ -102,7 +103,7 @@ class MyConnection:
         :param emergency_level:
         :return: None
         '''
-
+        print("sending alarm")
         def on_fail(req, res):
             print('alarm sending failed trying again')
             Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}))
@@ -155,14 +156,24 @@ class MyConnection:
         alarms = self.conn.execute('''select * from standard_alarms''').fetchall()
         return alarms
 
-    def get_escalating_levels(self):
-        levels = self.conn.execute('''select time_to_escalate from escalation_levels''').fetchall()
-        return levels
-
     def get_last_alarm(self):
 
         alarms = self.conn.execute('''select timer from alarms order by timer asc''').fetchall()
         return alarms[0][0]
+
+    def approve_alarm(self, alarm_timer):
+
+        data = [time.mktime(time.localtime()), alarm_timer]
+        self.conn.execute('update alarms set approved=? where timer=?', data)
+        self.conn.commit()
+
+    def delay_alarm(self, old_time, new_time):
+        timers = [new_time, old_time]
+        self.conn.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
+        self.conn.commit()
+
+    def get_escalation_times(self):
+        return self.conn.execute('''select time_to_escalate from escalation_levels''').fetchall()
 
 
 
