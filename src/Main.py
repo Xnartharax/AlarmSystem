@@ -156,17 +156,19 @@ class NewAlarmLabel(Label):
     def __init__(self):
 
         super().__init__()
+        self.font_size = 70
         self.refresher = Clock.schedule_interval(self.refresh, 1/4)
 
     def refresh(self, dt):
 
 
         try:
-            newtimer = time.ctime(myconn.get_unapproved_alarms()[0])
+            time_struct = time.localtime(myconn.get_unapproved_alarms()[0])
+            newtext = f"{time_struct.tm_mday}.{time_struct.tm_mon}\n{time_struct.tm_hour}:{time_struct.tm_min}"
         except IndexError:
-            newtimer = "no new alarm"
+            newtext = "no new alarm"
         #print(newtimer)
-        self.text = newtimer
+        self.text = newtext
 
 
 class MenuButton(Button):
