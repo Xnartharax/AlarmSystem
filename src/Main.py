@@ -12,7 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config
 
 from Connection import MyConnection
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 myconn = MyConnection('../data/coredata.db')
 # Create both screens. Please note the root.manager.current: this is how
