@@ -103,7 +103,7 @@ class MainButton(Button):
             self.text = "no new alarms"
 
     def on_press(self):
-        if not self.AlarmObject is None:
+        if  self.AlarmObject is not None:
             self.AlarmObject.deescalate()
             self.AlarmObject = None 
         if self.alarmState:
@@ -116,11 +116,6 @@ class MainButton(Button):
             sm.current = 'menu'
             def switchback(x): sm.current = 'main'
             Clock.schedule_once(switchback, 10)
-
-    def on_alarm(self, dt):
-        print('alarm')
-        self.AlarmObject = Alarm()
-        self.AlarmObject.escalate1()
 
 
 class MainButtonScreen(Screen):
