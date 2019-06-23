@@ -103,17 +103,16 @@ class MainButton(Button):
             self.text = "no new alarms"
 
     def on_press(self):
-        if  self.AlarmObject is not None:
+        if self.AlarmObject is not None:
             self.AlarmObject.deescalate()
             self.AlarmObject = None 
         if self.alarmState:
-
             alarm_timer = myconn.get_unapproved_alarms()[0]
             myconn.approve_alarm(alarm_timer)
-
             self.alarmState = False
         else:
             sm.current = 'menu'
+
             def switchback(x): sm.current = 'main'
             Clock.schedule_once(switchback, 10)
 
