@@ -1,4 +1,4 @@
-
+from math import floor
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 
@@ -12,7 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config
 
 from Connection import MyConnection
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 myconn = MyConnection('../data/coredata.db')
 # Create both screens. Please note the root.manager.current: this is how
@@ -23,16 +23,17 @@ voltagePin = 29
 BuzzerPin = 32
 # Declare both screens
     # setup
-GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-GPIO.setup(BuzzerPin, GPIO.OUT)
-GPIO.output(BuzzerPin, GPIO.HIGH)
-GPIO.setup(voltagePin, GPIO.OUT)
-GPIO.output(voltagePin, GPIO.HIGH)
+# GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+# GPIO.setup(BuzzerPin, GPIO.OUT)
+# GPIO.output(BuzzerPin, GPIO.HIGH)
+# GPIO.setup(voltagePin, GPIO.OUT)
+# GPIO.output(voltagePin, GPIO.LOW)
 
 
 def make_sound():
-    GPIO.output(BuzzerPin, GPIO.LOW)
-    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.HIGH), 2)
+    # GPIO.output(voltagePin, GPIO.HIGH)
+    # Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
+    pass
 
 
 class Alarm:
@@ -42,7 +43,7 @@ class Alarm:
 
     def escalate1(self):
         print("level 1")
-        self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 4), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
+        self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 1), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
 
     def escalate2(self):
         print("level 2")
@@ -73,13 +74,13 @@ class MainButton(Button):
 
         try:
             nextalarm = myconn.get_unapproved_alarms()[0]
-            timenow = time.localtime()
-            nowseconds = time.mktime(timenow)
+            nowseconds = time.time()
             time_diff = nextalarm-nowseconds
+            hours = floor(time_diff / 3600) #flooring otherwise to many hours til alarm half the time
+            minutes = round((time_diff % 3600) / 60)
+            self.text = '{} : {}'.format(hours, minutes)
             if time_diff > 0:
-                hours = round(time_diff/3600)
-                minutes = round((time_diff % 3600) / 60)
-                self.text = '{} : {}'.format(hours, minutes)
+
 
                 timebefore = myconn.get_standard_settings()[0]
                 if time_diff / 60 < timebefore:
@@ -92,6 +93,7 @@ class MainButton(Button):
 
             else:
                 self.text = "ALARM!!!!"
+                self.alarmState = True
                 self.background_color = (1, 0, 0, 1)
                 if self.AlarmObject is None:
                     self.AlarmObject = Alarm()
@@ -100,24 +102,18 @@ class MainButton(Button):
             self.text = "no new alarms"
 
     def on_press(self):
-        if not self.AlarmObject is None:
+        if self.AlarmObject is not None:
             self.AlarmObject.deescalate()
             self.AlarmObject = None 
         if self.alarmState:
-
             alarm_timer = myconn.get_unapproved_alarms()[0]
             myconn.approve_alarm(alarm_timer)
-
             self.alarmState = False
         else:
             sm.current = 'menu'
+
             def switchback(x): sm.current = 'main'
             Clock.schedule_once(switchback, 10)
-
-    def on_alarm(self, dt):
-        print('alarm')
-        self.AlarmObject = Alarm()
-        self.AlarmObject.escalate1()
 
 
 class MainButtonScreen(Screen):
@@ -200,7 +196,7 @@ class AlarmNowButton(Button):
     def on_press(self):
 
         myconn.send_emergency(4)
-        make_sound()
+        # make_sound()
 
 
 class Engine:
@@ -238,7 +234,7 @@ class Engine:
         timer[4] = minute
         seconds = time.mktime(tuple(timer))
         last_alarm = self.conn.get_last_alarm()
-        while seconds <= last_alarm+200 or seconds < time.mktime(time.localtime()):
+        while seconds <= last_alarm+1000 or seconds < time.time():
             seconds += 24*3600
         return seconds
 
