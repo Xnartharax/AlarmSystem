@@ -93,7 +93,6 @@ class MainButton(Button):
 
             else:
                 self.text = "ALARM!!!!"
-                self.alarmState = True
                 self.background_color = (1, 0, 0, 1)
                 if self.AlarmObject is None:
                     self.AlarmObject = Alarm()
@@ -102,18 +101,24 @@ class MainButton(Button):
             self.text = "no new alarms"
 
     def on_press(self):
-        if self.AlarmObject is not None:
+        if not self.AlarmObject is None:
             self.AlarmObject.deescalate()
             self.AlarmObject = None 
         if self.alarmState:
+
             alarm_timer = myconn.get_unapproved_alarms()[0]
             myconn.approve_alarm(alarm_timer)
+
             self.alarmState = False
         else:
             sm.current = 'menu'
-
             def switchback(x): sm.current = 'main'
             Clock.schedule_once(switchback, 10)
+
+    def on_alarm(self, dt):
+        print('alarm')
+        self.AlarmObject = Alarm()
+        self.AlarmObject.escalate1()
 
 
 class MainButtonScreen(Screen):
@@ -234,7 +239,7 @@ class Engine:
         timer[4] = minute
         seconds = time.mktime(tuple(timer))
         last_alarm = self.conn.get_last_alarm()
-        while seconds <= last_alarm+1000 or seconds < time.mktime(time.localtime()):
+        while seconds <= last_alarm+200 or seconds < time.mktime(time.localtime()):
             seconds += 24*3600
         return seconds
 
