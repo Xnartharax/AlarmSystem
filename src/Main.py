@@ -76,7 +76,6 @@ class MainButton(Button):
             timenow = time.localtime()
             nowseconds = time.mktime(timenow)
             time_diff = nextalarm-nowseconds
-
             if time_diff > 0:
                 hours = round(time_diff/3600)
                 minutes = round((time_diff % 3600) / 60)
