@@ -12,7 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config
 
 from Connection import MyConnection
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 myconn = MyConnection('../data/coredata.db')
 # Create both screens. Please note the root.manager.current: this is how
@@ -23,17 +23,16 @@ voltagePin = 29
 BuzzerPin = 32
 # Declare both screens
     # setup
-# GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-# GPIO.setup(BuzzerPin, GPIO.OUT)
-# GPIO.output(BuzzerPin, GPIO.HIGH)
-# GPIO.setup(voltagePin, GPIO.OUT)
-# GPIO.output(voltagePin, GPIO.LOW)
+GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.HIGH)
+GPIO.setup(voltagePin, GPIO.OUT)
+GPIO.output(voltagePin, GPIO.HIGH)
 
 
 def make_sound():
-    # GPIO.output(voltagePin, GPIO.HIGH)
-    # Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
-    pass
+    GPIO.output(BuzzerPin, GPIO.LOW)
+    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.HIGH), 0.5)
 
 
 class Alarm:
@@ -195,8 +194,8 @@ class AlarmNowButton(Button):
 
     def on_press(self):
 
-        myconn.send_emergency(4)
-        # make_sound()
+        #myconn.send_emergency(4)
+        make_sound()
 
 
 class Engine:
