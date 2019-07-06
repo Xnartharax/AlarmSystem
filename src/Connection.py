@@ -59,7 +59,7 @@ class MyConnection:
             print('connection failed: trying again')
 
             Clock.schedule_once(lambda x:post('http://' + self.server_url + '/cgi-bin/new_alarm.py',
-                         ddata={'timer': timer, 'device_id': 1}, on_succ=on_succ,
+                         data={'timer': timer, 'device_id': 1}, on_succ=on_succ,
                          on_fail=on_fail), 10)
 
             self.conn.commit()
@@ -106,7 +106,7 @@ class MyConnection:
         print("sending alarm")
         def on_fail(req, res):
             print('alarm sending failed trying again')
-            Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}))
+            Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level},on_fail=on_fail, on_succ=on_succ))
 
         def on_succ(req, res):
             print('alarm send')
@@ -115,7 +115,7 @@ class MyConnection:
 
     def send_alive(self, timer):
         def on_fail(req, res):
-            Clock.schedule_once(lambda x:post('http://'+self.server_url + '/cgi-bin/alive.py', data={'timer': timer, 'device_id': 1}))
+            Clock.schedule_once(lambda x:post('http://'+self.server_url + '/cgi-bin/alive.py', data={'timer': timer, 'device_id': 1},on_fail=on_fail, on_succ=on_succ))
 
         def on_succ(req, res):
             print('alive send')
@@ -139,7 +139,7 @@ class MyConnection:
 
     def get_unapproved_alarms(self):
 
-        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer asc''').fetchall()
+        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer desc''').fetchall()
         return [alarm[0] for alarm in unapproved]
 
     def insert_new_alarm(self, timer):
@@ -158,7 +158,7 @@ class MyConnection:
 
     def get_last_alarm(self):
 
-        alarms = self.conn.execute('''select timer from alarms order by timer asc''').fetchall()
+        alarms = self.conn.execute('''select timer from alarms order by timer desc''').fetchall()
         return alarms[0][0]
 
     def approve_alarm(self, alarm_timer):
