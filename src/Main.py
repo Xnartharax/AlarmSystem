@@ -76,7 +76,7 @@ class MainButton(Button):
             nextalarm = myconn.get_unapproved_alarms()[0]
             nowseconds = time.time()
             time_diff = nextalarm-nowseconds
-            hours = floor(time_diff / 3600)
+            hours = floor(time_diff / 3600) #flooring otherwise to many hours til alarm half the time
             minutes = round((time_diff % 3600) / 60)
             self.text = '{} : {}'.format(hours, minutes)
             if time_diff > 0:
