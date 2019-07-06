@@ -163,7 +163,7 @@ class MyConnection:
 
     def approve_alarm(self, alarm_timer):
 
-        data = [time.mktime(time.localtime()), alarm_timer]
+        data = [int(time.time()), alarm_timer]
         self.conn.execute('update alarms set approved=? where timer=?', data)
         self.conn.commit()
 

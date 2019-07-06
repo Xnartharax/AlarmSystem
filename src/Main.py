@@ -1,4 +1,4 @@
-
+from math import floor
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 
@@ -73,14 +73,13 @@ class MainButton(Button):
 
         try:
             nextalarm = myconn.get_unapproved_alarms()[0]
-            timenow = time.localtime()
-            nowseconds = time.mktime(timenow)
+            nowseconds = time.time()
             time_diff = nextalarm-nowseconds
-
+            hours = floor(time_diff / 3600)
+            minutes = round((time_diff % 3600) / 60)
+            self.text = '{} : {}'.format(hours, minutes)
             if time_diff > 0:
-                hours = round(time_diff/3600)
-                minutes = round((time_diff % 3600) / 60)
-                self.text = '{} : {}'.format(hours, minutes)
+
 
                 timebefore = myconn.get_standard_settings()[0]
                 if time_diff / 60 < timebefore:
@@ -234,7 +233,7 @@ class Engine:
         timer[4] = minute
         seconds = time.mktime(tuple(timer))
         last_alarm = self.conn.get_last_alarm()
-        while seconds <= last_alarm+1000 or seconds < time.mktime(time.localtime()):
+        while seconds <= last_alarm+1000 or seconds < time.time():
             seconds += 24*3600
         return seconds
 
