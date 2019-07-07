@@ -139,7 +139,7 @@ class MyConnection:
 
     def get_unapproved_alarms(self):
 
-        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer desc''').fetchall()
+        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer asc''').fetchall()
         return [alarm[0] for alarm in unapproved]
 
     def insert_new_alarm(self, timer):
