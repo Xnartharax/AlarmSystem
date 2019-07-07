@@ -153,7 +153,7 @@ class MyConnection:
 
     def get_standard_alarms(self):
 
-        alarms = self.conn.execute('''select * from standard_alarms order by hour asc''').fetchall()
+        alarms = self.conn.execute('''select * from standard_alarms order by hour desc''').fetchall()
         return alarms
 
     def get_last_alarm(self):
