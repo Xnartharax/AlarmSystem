@@ -233,7 +233,7 @@ class Engine:
         timer[3] = hour
         timer[4] = minute
         seconds = time.mktime(tuple(timer))
-        last_alarm = self.conn.get_last_alarm()
+        last_alarm = self.conn.get_last_approved_alarm()
         while seconds <= last_alarm+1000 or seconds < time.time():
             seconds += 24*3600
         return seconds

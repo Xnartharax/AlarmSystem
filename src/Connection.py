@@ -175,5 +175,9 @@ class MyConnection:
     def get_escalation_times(self):
         return self.conn.execute('''select time_to_escalate from escalation_levels''').fetchall()
 
+    def get_last_approved_alarm(self):
+
+        alarms = self.conn.execute('''select timer from alarms where approved is not NULL order by timer desc''').fetchall()
+        return alarms[0][0]
 
 
