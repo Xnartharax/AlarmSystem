@@ -177,12 +177,12 @@ class MenuButton(Button):
 
     def on_press(self):
 
-        alarms = myconn.get_unapproved_alarms()
+        alarm = myconn.get_unapproved_alarms()[0]
 
-        for alarm in alarms:
-            newtimer = alarm+self.hours*3600
-            myconn.delay_alarm(alarm, newtimer)
-            myconn.update_alarms(alarm, newtimer)
+
+        newtimer = alarm+self.hours*3600
+        myconn.delay_alarm(alarm, newtimer)
+        myconn.update_alarms(alarm, newtimer)
 
 
 class AlarmNowButton(Button):
