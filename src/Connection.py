@@ -180,4 +180,7 @@ class MyConnection:
         alarms = self.conn.execute('''select timer from alarms where approved is not NULL order by timer desc''').fetchall()
         return alarms[0][0]
 
+    def clear_old_alarms(self):
+        self.conn.execute('''delete from alarms where timer < ? and approved is not NULL''', (time.time()-3600*24*7))
+        self.conn.execute
 

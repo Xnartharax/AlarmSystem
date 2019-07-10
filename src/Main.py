@@ -220,6 +220,7 @@ class Engine:
         unsent_new = self.conn.get_unsent_new_alarms()
         for unsent in unsent_new:
             self.conn.send_new_alarms(unsent)
+        self.conn.clear_old_alarms()
 
     def new_alarms(self):
         print('making new alarm')
