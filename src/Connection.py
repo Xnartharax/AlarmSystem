@@ -139,7 +139,7 @@ class MyConnection:
 
     def get_unapproved_alarms(self):
 
-        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer desc''').fetchall()
+        unapproved = self.conn.execute('''select timer from alarms where approved is NULL order by timer asc''').fetchall()
         return [alarm[0] for alarm in unapproved]
 
     def insert_new_alarm(self, timer):
@@ -153,7 +153,7 @@ class MyConnection:
 
     def get_standard_alarms(self):
 
-        alarms = self.conn.execute('''select * from standard_alarms''').fetchall()
+        alarms = self.conn.execute('''select * from standard_alarms order by hour asc''').fetchall()
         return alarms
 
     def get_last_alarm(self):
@@ -175,5 +175,12 @@ class MyConnection:
     def get_escalation_times(self):
         return self.conn.execute('''select time_to_escalate from escalation_levels''').fetchall()
 
+    def get_last_approved_alarm(self):
 
+        alarms = self.conn.execute('''select timer from alarms where approved is not NULL order by timer desc''').fetchall()
+        return alarms[0][0]
+
+    def clear_old_alarms(self):
+        self.conn.execute('''delete from alarms where timer < ? and approved is not NULL''', (time.time()-3600*24*7,))
+        self.conn.execute
 

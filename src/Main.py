@@ -176,12 +176,12 @@ class MenuButton(Button):
 
     def on_press(self):
 
-        alarms = myconn.get_unapproved_alarms()
+        alarm = myconn.get_unapproved_alarms()[0]
 
-        for alarm in alarms:
-            newtimer = alarm+self.hours*3600
-            myconn.delay_alarm(alarm, newtimer)
-            myconn.update_alarms(alarm, newtimer)
+
+        newtimer = alarm+self.hours*3600
+        myconn.delay_alarm(alarm, newtimer)
+        myconn.update_alarms(alarm, newtimer)
 
 
 class AlarmNowButton(Button):
@@ -219,6 +219,7 @@ class Engine:
         unsent_new = self.conn.get_unsent_new_alarms()
         for unsent in unsent_new:
             self.conn.send_new_alarms(unsent)
+        self.conn.clear_old_alarms()
 
     def new_alarms(self):
         print('making new alarm')
@@ -232,7 +233,7 @@ class Engine:
         timer[3] = hour
         timer[4] = minute
         seconds = time.mktime(tuple(timer))
-        last_alarm = self.conn.get_last_alarm()
+        last_alarm = self.conn.get_last_approved_alarm()
         while seconds <= last_alarm+1000 or seconds < time.time():
             seconds += 24*3600
         return seconds
