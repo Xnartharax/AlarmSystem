@@ -194,7 +194,7 @@ class AlarmNowButton(Button):
 
     def on_press(self):
 
-        #myconn.send_emergency(4)
+        myconn.send_emergency(4)
         make_sound()
 
 
