@@ -170,6 +170,7 @@ class MyConnection:
     def delay_alarm(self, old_time, new_time):
         timers = [new_time, old_time]
         self.conn.execute('''update alarms set timer=?, sendtoserver=4 where timer=?''', timers)
+        self.conn.execute('''delete from alarms where approved is NULL and timer < ?'''(new_time,))
         self.conn.commit()
 
     def get_escalation_times(self):
