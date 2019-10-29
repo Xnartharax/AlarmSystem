@@ -103,15 +103,15 @@ class MyConnection:
         :param emergency_level:
         :return: None
         '''
-        print("not sending alarm commented out !")
-        # def on_fail(req, res):
-        #     print('alarm sending failed trying again')
-        #     Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level},on_fail=on_fail, on_succ=on_succ))
-        #
-        # def on_succ(req, res):
-        #     print('alarm send')
-        #
-        # r = post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}, on_fail=on_fail, on_succ=on_succ)
+
+        def on_fail(req, res):
+            print('alarm sending failed trying again')
+            Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level},on_fail=on_fail, on_succ=on_succ))
+
+        def on_succ(req, res):
+            print('alarm send')
+
+        r = post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}, on_fail=on_fail, on_succ=on_succ)
 
     def send_alive(self):
         timer = time.mktime(time.localtime())
