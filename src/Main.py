@@ -40,20 +40,25 @@ class Alarm:
     def __init__(self):
         self.escalate_times = myconn.get_escalation_times()
         self.levels = [None, None, None]
+        self.level = 0
 
     def escalate1(self):
         print("level 1")
         self.levels[0] = (Clock.schedule_interval(lambda x: make_sound(), 1), Clock.schedule_once(lambda x: self.escalate2(), self.escalate_times[0][0]))
+        self.level = 1
 
     def escalate2(self):
         print("level 2")
         self.levels[1] = (Clock.schedule_once(lambda x: myconn.send_emergency(2), 1), Clock.schedule_once(lambda x: self.escalate3(), self.escalate_times[1][0]))
+        self.level = 2
 
     def escalate3(self):
         print("level 3")
         self.levels[2] = (Clock.schedule_once(lambda x: myconn.send_emergency(3), 1), Clock.schedule_once(lambda x: myconn.send_emergency(3), 1))
+        self.level = 3
 
     def deescalate(self):
+        self.level = 0
         for escalation in self.levels:
             if escalation is not None:
                 escalation[0].cancel()
@@ -79,41 +84,26 @@ class MainButton(Button):
             hours = floor(time_diff / 3600) #flooring otherwise to many hours til alarm half the time
             minutes = round((time_diff % 3600) / 60)
             self.text = '{} : {}'.format(hours, minutes)
-            if time_diff > 0:
-
-
-                timebefore = myconn.get_standard_settings()[0]
-                if time_diff / 60 < timebefore:
-                    self.background_color = (0, 1, 0, 1)
-                    if not self.alarmState:
-                        self.alarmState = True
-                else:
-                    self.background_color = (0, 0, 0, 1)
-                    self.alarmState = False
-
-            else:
-                self.text = "ALARM!!!!"
-                self.alarmState = True
-                self.background_color = (1, 0, 0, 1)
-                if self.AlarmObject is None:
-                    self.AlarmObject = Alarm()
-                    self.AlarmObject.escalate1()
         except IndexError:
             self.text = "no new alarms"
 
     def on_press(self):
-        if self.AlarmObject is not None:
-            self.AlarmObject.deescalate()
-            self.AlarmObject = None 
-        if self.alarmState:
-            alarm_timer = myconn.get_unapproved_alarms()[0]
-            myconn.approve_alarm(alarm_timer)
-            self.alarmState = False
-        else:
-            sm.current = 'menu'
+        sm.current = 'menu'
 
-            def switchback(x): sm.current = 'main'
-            Clock.schedule_once(switchback, 10)
+        def switchback(x): sm.current = 'main'
+        Clock.schedule_once(switchback, 10)
+
+
+class AlarmButton(Button):
+    def __init__(self):
+        super().__init__()
+        self.text = "Alarm!!!"
+        self.font_size = 160
+        self.background_color = (1, 0, 0, 1)
+
+    def on_press(self):
+        sm.current = 'main'
+        engine.deescalate()
 
 
 class MainButtonScreen(Screen):
@@ -126,6 +116,12 @@ class MenuScreen(Screen):
     def __init__(self, name='menu'):
         super().__init__(name=name)
         self.add_widget(MenuGUI())
+
+
+class AlarmScreen(Screen):
+    def __init__(self, name='alarm'):
+        super().__init__(name=name)
+        self.add_widget(AlarmButton())
 
 
 class MenuGUI(BoxLayout):
@@ -178,8 +174,6 @@ class MenuButton(Button):
     def on_press(self):
 
         alarm = myconn.get_unapproved_alarms()[0]
-
-
         newtimer = alarm+self.hours*3600
         myconn.delay_alarm(alarm, newtimer)
         myconn.update_alarms(alarm, newtimer)
@@ -196,6 +190,8 @@ class AlarmNowButton(Button):
     def on_press(self):
 
         myconn.send_emergency(4)
+        sm.current = 'alarm'
+        engine.alarmState = True
         # make_sound()
 
 
@@ -204,12 +200,14 @@ class Engine:
     def __init__(self):
         self.conn = myconn
         main_engine = lambda x: self.mainloop()
+        self.alarmState = False
+        self.AlarmObject = Alarm()
         sleep_duration = self.conn.get_standard_settings()[2]
         Clock.schedule_interval(main_engine, sleep_duration)
 
     def mainloop(self):
         print('mainloop step')
-        self.conn.send_alive(time.mktime(time.localtime()))
+        self.conn.send_alive()
         if len(self.conn.get_unapproved_alarms()) == 0:
                 self.new_alarms()
 
@@ -221,6 +219,25 @@ class Engine:
         for unsent in unsent_new:
             self.conn.send_new_alarms(unsent)
         self.conn.clear_old_alarms()
+        self.check_alarm()
+
+    def check_alarm(self):
+        unapproved_alarms = myconn.get_unapproved_alarms()
+        if len(unapproved_alarms) < 1: return
+        nextalarm = myconn.get_unapproved_alarms()[0]
+        nowseconds = time.time()
+        time_diff = nextalarm - nowseconds
+        if time_diff < 0:
+            self.alarmState = True
+            sm.current = 'alarm'
+            if self.AlarmObject is None:
+                self.AlarmObject = Alarm()
+                self.AlarmObject.escalate1()
+
+    def deescalate(self):
+        self.alarmState = False
+        self.conn.send_deescalate()
+        self.AlarmObject.deescalate()
 
     def new_alarms(self):
         print('making new alarm')
@@ -241,8 +258,10 @@ class Engine:
 
 # Create the screen manager
 sm = ScreenManager()
+sm.add_widget(AlarmScreen())
 sm.add_widget(MainButtonScreen(name='main'))
 sm.add_widget(MenuScreen(name='menu'))
+sm.current = 'main'
 
 
 class TestApp(App):

@@ -103,19 +103,22 @@ class MyConnection:
         :param emergency_level:
         :return: None
         '''
-        print("sending alarm")
+        print("not sending alarm commented out !")
+        # def on_fail(req, res):
+        #     print('alarm sending failed trying again')
+        #     Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level},on_fail=on_fail, on_succ=on_succ))
+        #
+        # def on_succ(req, res):
+        #     print('alarm send')
+        #
+        # r = post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}, on_fail=on_fail, on_succ=on_succ)
+
+    def send_alive(self):
+        timer = time.mktime(time.localtime())
         def on_fail(req, res):
-            print('alarm sending failed trying again')
-            Clock.schedule_once(lambda x: post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level},on_fail=on_fail, on_succ=on_succ))
-
-        def on_succ(req, res):
-            print('alarm send')
-
-        r = post('http://'+self.server_url + '/cgi-bin/emergency.py', data={'device_id': 1, 'emergency_level': emergency_level}, on_fail=on_fail, on_succ=on_succ)
-
-    def send_alive(self, timer):
-        def on_fail(req, res):
+            print("sending alive again")
             Clock.schedule_once(lambda x:post('http://'+self.server_url + '/cgi-bin/alive.py', data={'timer': timer, 'device_id': 1},on_fail=on_fail, on_succ=on_succ))
+
 
         def on_succ(req, res):
             print('alive send')
@@ -184,4 +187,11 @@ class MyConnection:
     def clear_old_alarms(self):
         self.conn.execute('''delete from alarms where timer < ? and approved is not NULL''', (time.time()-3600*24*7,))
         self.conn.execute
+
+    def send_deescalate(self):
+        pass
+
+    def approve_newest_alarm(self):
+        alarm_timer = self.get_unapproved_alarms()[0]
+        self.approve_alarm(alarm_timer)
 
