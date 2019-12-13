@@ -1,0 +1,7 @@
+{
+    "auth_key": "bla",
+    "server_url": "localhost:5000",
+    "device_id": 1,
+    "sleep": 30,
+    "uid": 1
+}
