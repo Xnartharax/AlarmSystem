@@ -15,35 +15,33 @@ class MainButton(Button):
         self.alarmState = False
         self.font_size = 160
         self.AlarmObject = None
+        self.background_color = (0, 0, 0, 1)
 
     def refresh(self, dt):
         # refreshes the timer
         if eng.closest_alarm != None:
             self.text = eng.closest_alarm.timer()
-            if eng.closest_alarm.status == 2:
+            if eng.closest_alarm.status == 1:
                 self.background_color = (0, 1, 0, 1) # green -> confirmable
-            elif eng.closest_alarm.status > 2: 
+            elif eng.closest_alarm.status >= 2: 
                 sm.current = "alarm" # alarmscreen red -> alarm
             else:
                 self.background_color = (0, 0, 0, 1) # black -> normal
         else:
             self.text = "kein\n neuer\n  Alarm"
+            self.background_color = (0, 0, 0, 1) # black -> normal
 
     def on_press(self):
         # switch to menu screen and schedule switching back
-        if eng.closest_alarm is None or eng.closest_alarm.status < 2:
+        if eng.closest_alarm is None or eng.closest_alarm.status == 0:
             sm.current = 'menu'
             def switchback(delay):
                 if sm.current != "alarm":
                     sm.current = 'main'
             Clock.schedule_once(switchback, 10)
         else:
-            if eng.closest_alarm.status == 2:
+            if eng.closest_alarm.status == 1:
                 eng.confirm_alarm()
-            if eng.closest_alarm.status > 2:
-                eng.deescalate()
-            
-
 
 class AlarmButton(Button):
     # fullscreen button displayed in the alarm screen
@@ -54,8 +52,9 @@ class AlarmButton(Button):
         self.background_color = (1, 0, 0, 1)
 
     def on_press(self):
-        sm.current = 'main'
         eng.deescalate()
+        sm.current = 'main'
+        
 
 
 class MainButtonScreen(Screen):
@@ -138,6 +137,7 @@ class AlarmNowButton(Button):
     def on_press(self):
 
         eng.send_emergency(4)
+        eng.active_alarm = True
         sm.current = 'alarm'
         eng.alarmState = True
         # make_sound()

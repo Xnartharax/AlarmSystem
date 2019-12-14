@@ -16,7 +16,7 @@ from hausnotruf.backend import Backend
 
 import time
 from hausnotruf.engine import Engine
-backend = Backend('../data/coredata.db')
+backend = Backend()
 sm = ScreenManager()
 eng = Engine(backend)
 from hausnotruf.widgets import AlarmScreen, MainButtonScreen, MenuScreen
