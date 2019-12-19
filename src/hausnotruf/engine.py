@@ -14,6 +14,8 @@ class Engine:
 
     def mainloop(self):
         log('mainloop step')
+        if self.backend.get_auth_key is None:
+            self.device_auth()
         self.backend.send_alive()
         if len(self.backend.get_unconfirmed_alarms()) == 0:
                 self.backend.has_to_synchronize = True
@@ -60,3 +62,6 @@ class Engine:
 
     def send_emergency(self, level):
         self.backend.send_emergency(level)
+
+    def device_auth(self):
+        DeviceAuthPopup()

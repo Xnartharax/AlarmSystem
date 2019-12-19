@@ -5,6 +5,9 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from hausnotruf import eng, sm
+from kivy.uix.vkeyboard import VKeyboard
+from kivy.core.window import Window
+from kivy.uix.popup import Popup
 
 class MainButton(Button):
     # the full screen button displayed in the main screnn
@@ -142,3 +145,18 @@ class AlarmNowButton(Button):
         eng.alarmState = True
         # make_sound()
 
+
+class DeviceAuthLayout(BoxLayout):
+    def __init__(self):
+        super().__init__()
+        keyboard = Window.request_keyboard(
+        self._keyboard_close, self)
+        if keyboard.widget:
+            vkeyboard = self._keyboard.widget
+            vkeyboard.layout = 'numeric.json'
+        
+class DeviceAuthPopup(Popup):
+    def __init__(self):
+        content = DeviceAuthLayout()
+        super().__init__(content=content)
+        

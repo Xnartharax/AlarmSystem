@@ -30,14 +30,15 @@ def err(msg):
     print(f"[ERROR  ] [Hausnotruf   ] {msg}")
 
 def popup_error_msg(msg):
-        dismiss_button = Button(text="Ok")
-        msg_label = Label(text=msg)
-        content = BoxLayout(orientation="vertical")
-        content.add_widget(msg_label)
-        content.add_widget(dismiss_button)
-        popup = Popup(content=content, auto_dismiss=False)
-        dismiss_button.bind(on_press=popup.dismiss)
-        popup.open()
+    dismiss_button = Button(text="Ok")
+    msg_label = Label(text=msg)
+    content = BoxLayout(orientation="vertical")
+    content.add_widget(msg_label)
+    content.add_widget(dismiss_button)
+    popup = Popup(content=content, auto_dismiss=False)
+    dismiss_button.bind(on_press=popup.dismiss)
+    popup.open()
 
 def prompt_for_pass():
     pass
+
