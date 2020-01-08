@@ -1,7 +1,1 @@
-{
-    "auth_key": "bla",
-    "server_url": "localhost:5000",
-    "device_id": 1,
-    "sleep": 30,
-    "uid": 1
-}
+{"server_url": "localhost:5000", "sleep": 30, "api_key": "a16da0183edbc713ef4a36c254d9adfb", "uid": 1, "device_id": 2}

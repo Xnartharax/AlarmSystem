@@ -82,6 +82,6 @@ class Alarm(Base):
     def from_dict(alarm_dict):
         return Alarm(id=alarm_dict["id"], timer_escalation=datetime.strptime(alarm_dict["timer_escalation"], "%m/%d/%Y, %H:%M"),
                         timer_confirmation=datetime.strptime(alarm_dict["timer_confirmation"], "%m/%d/%Y, %H:%M"), confirmed=alarm_dict["confirmed"],
-                        updated=alarm_dict["updated"])
+                        updated=alarm_dict["updated"], status=alarm_dict["status"])
         
 Base.metadata.create_all(db_engine)

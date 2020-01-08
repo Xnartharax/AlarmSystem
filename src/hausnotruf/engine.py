@@ -14,19 +14,19 @@ class Engine:
 
     def mainloop(self):
         log('mainloop step')
-        if self.backend.get_auth_key is None:
-            self.device_auth()
+        if self.backend.get_auth_key() is None:
+            device_auth(self)
         self.backend.send_alive()
         if len(self.backend.get_unconfirmed_alarms()) == 0:
                 self.backend.has_to_synchronize = True
-        # self.backend.clear_old_alarms()
-        self.check_alarm()
+        self.backend.clear_old_alarms()
+        
         if self.backend.has_to_synchronize:
             self.backend.synchronize_alarms()
-        for error, (flag, handled) in self.backend.error_flags.items():
-            if flag and not handled:
+        self.check_alarm()
+        for error, flag in self.backend.error_flags.items():
+            if flag:
                 popup_error_msg(error)
-                handled = True
         self.closest_alarm = self.backend.get_closest_alarm()
         
         
@@ -52,6 +52,7 @@ class Engine:
             self.active_alarm = False
             self.backend.send_deescalate(self.closest_alarm.get_escalation_level())
         self.closest_alarm = None
+        self.backend.has_to_synchronize = True
 
     def postpone_alarm(self, hours):
         if self.closest_alarm is not None:
@@ -59,9 +60,10 @@ class Engine:
             for alarm in session.query(Alarm).filter(Alarm.timer_escalation < self.closest_alarm.timer_confirmation).all():
                 alarm.confirmed = True
                 alarm.altered()
+            self.backend.has_to_synchronize = True
 
     def send_emergency(self, level):
         self.backend.send_emergency(level)
 
-    def device_auth(self):
-        DeviceAuthPopup()
+    def fetch_api_key(self, value):
+        self.backend.fetch_auth_key(value)

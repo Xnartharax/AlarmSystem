@@ -1,0 +1,7 @@
+.idea
+.vscode
+old/
+src/audio_test.py
+src/rp2_pinout.png
+src/__pycache__/
+testing_or_notes/

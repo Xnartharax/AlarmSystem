@@ -16,19 +16,19 @@ class Backend:
     def __init__(self):
         self.server_url = self.get_settings()["server_url"]
         self.error_flags = {
-            "Auth Error": [False, False],
-            "Kein Internet": [False, False],
-            "Server kaputt": [False, False]
+            "Auth Error": False,
+            "Kein Internet": False,
+            "Server kaputt": False
         }
         self.has_to_synchronize = True
     
     def not_reachable(self, req : UrlRequest, res):
         if req.resp_status == 403:
-            self.error_flags["Auth Error"][0] = True
+            self.error_flags["Auth Error"] = True
         elif req.resp_status == 500:
-            self.error_flags["Server kaputt"][0] = True
+            self.error_flags["Server kaputt"] = True
         else:
-            self.error_flags["Keine Verbindung zum Server"][0] = True
+            self.error_flags["Kein Internet"] = True
 
     def request_succ_handle(self, func):
         def new_func(*args, **kwargs):
@@ -39,15 +39,19 @@ class Backend:
 
     def post(self, url, data, on_succ=None):
         # encodes the data as json and sends it in the request body hope cgi module can handle this
-        urlstring = url
-        auth = sha256()
-        auth.update(json.dumps(data).encode())
-        auth.update(self.get_auth_key().encode())
-        query = json.dumps({"data": data, "auth": auth.hexdigest(), "uid": self.get_settings()["uid"]})
-        req_headers = {"Content-type": "application/json"}
+        auth_key = self.get_auth_key()
+        if auth_key is not None:
+            urlstring = url
+            auth = sha256()
+            auth.update(json.dumps(data).encode())
+            auth.update(self.get_auth_key().encode())
+            query = json.dumps({"data": data, "auth": auth.hexdigest(),
+                    "uid": self.get_settings()["uid"],
+                    "device_id": self.get_settings()["device_id"]})
+            req_headers = {"Content-type": "application/json"}
 
-        UrlRequest(urlstring, req_body=query, req_headers=req_headers, on_failure=self.not_reachable,
-                       on_success=on_succ, timeout=10)
+            UrlRequest(urlstring, req_body=query, req_headers=req_headers, on_failure=self.not_reachable,
+                        on_success=on_succ, timeout=10)
 
 
     def dictionarize(self, cursor):
@@ -120,16 +124,32 @@ class Backend:
         return settings
 
     def get_device_id(self):
-        return self.get_settings()["device_id"]
+        return self.get_settings().get("device_id")
 
     def get_auth_key(self):
-        auth_key = self.get_settings().get("auth_key")
-        if auth_key is None:
-            auth_key = self.fetch_auth_key()
+        auth_key = self.get_settings().get("api_key")
         return auth_key
-    
-    def fetch_auth_key(self):
-        self.post('http://'+self.server_url + '/api/get_apikey',
-                      data={'username': "TestUser", 'password': "1234"})
+
+    def write_settings(self, settings):
+        fp = open("../data/settings.json", "w")
+        json.dump(settings, fp)
+        fp.close()
+
+    def fetch_auth_key(self, token):
+        @self.request_succ_handle
+        def on_succ(req, resp):
+            settings = self.get_settings()
+            settings["api_key"] = resp["api_key"]
+            settings["uid"] = resp["uid"]
+            settings["device_id"] = resp["device_id"]
+            self.write_settings(settings)
+
+        
+        data={'token': token}
+        query = json.dumps(data)
+        req_headers = {"Content-type": "application/json"}
+        UrlRequest('http://'+self.server_url + '/api/get_apikey', req_body=query, 
+                        req_headers=req_headers, on_failure=self.not_reachable,
+                        on_success=on_succ, timeout=10)
 
     
