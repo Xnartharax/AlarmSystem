@@ -5,23 +5,23 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 # this is only used for the device but is included for completeness
     # setup
-# GPIO.setmode(GPIO.BOARD)  # Numbers GPIOs by physical location
-# GPIO.setup(BuzzerPin, GPIO.OUT)
-# GPIO.output(BuzzerPin, GPIO.HIGH)
-# GPIO.setup(voltagePin, GPIO.OUT)
-# GPIO.output(voltagePin, GPIO.LOW)
-
-
 voltagePin = 29
 BuzzerPin = 32
 
+GPIO.setmode(GPIO.BOARD)  
+GPIO.setup(BuzzerPin, GPIO.OUT)
+GPIO.output(BuzzerPin, GPIO.HIGH)
+GPIO.setup(voltagePin, GPIO.OUT)
+GPIO.output(voltagePin, GPIO.LOW)
+
+
+
 def make_sound():
-    # GPIO.output(voltagePin, GPIO.HIGH)
-    # Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
-    pass
+    GPIO.output(voltagePin, GPIO.HIGH)
+    Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
 
 def log(msg):
     print(f"[INFO   ] [Hausnotruf   ] {msg}")
