@@ -48,8 +48,8 @@ def popup_opening(func):
 @popup_opening
 def popup_error_msg(msg):
     
-    dismiss_button = Button(text="Ok")
-    msg_label = Label(text=msg)
+    dismiss_button = Button(text="OK", font_size=140)
+    msg_label = Label(text=msg, font_size=140)
     content = BoxLayout(orientation="vertical")
     content.add_widget(msg_label)
     content.add_widget(dismiss_button)
@@ -67,7 +67,7 @@ class DeviceAuthLayout(BoxLayout):
     def __init__(self, eng, popup):
         super().__init__()
         self.popup = popup
-        self.pininput = TextInput(multiline=False, text="PIN")
+        self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
         self.eng = eng
         self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
         self.add_widget(self.pininput)
