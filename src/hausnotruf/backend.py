@@ -33,7 +33,7 @@ class Backend:
     def request_succ_handle(self, func):
         def new_func(*args, **kwargs):
             for error_code in self.error_flags.values():
-                error_code = [False, False]
+                error_code = False
             func(*args, **kwargs)
         return new_func
 
@@ -43,11 +43,11 @@ class Backend:
         if auth_key is not None:
             urlstring = url
             auth = sha256()
-            auth.update(json.dumps(data).encode())
+            auth.update(json.dumps(data, sort_keys=True).encode())
             auth.update(self.get_auth_key().encode())
             query = json.dumps({"data": data, "auth": auth.hexdigest(),
                     "uid": self.get_settings()["uid"],
-                    "device_id": self.get_settings()["device_id"]})
+                    "device_id": self.get_settings()["device_id"]}, sort_keys=True)
             req_headers = {"Content-type": "application/json"}
 
             UrlRequest(urlstring, req_body=query, req_headers=req_headers, on_failure=self.not_reachable,
@@ -83,7 +83,7 @@ class Backend:
         log("initiating synchronization")
         all_alarms = [alarm.to_dict() for alarm in session.query(Alarm).all()]
         data = {'alarms': all_alarms, 'device_id': self.get_device_id()}
-        self.post('http://'+self.server_url+'/api/synchronize', data, on_succ=handle)
+        self.post('https://'+self.server_url+'/api/synchronize', data, on_succ=handle)
 
     def send_alive(self):
         @self.request_succ_handle
@@ -91,12 +91,12 @@ class Backend:
             log("succesfully send alive")
             if resp[0] == 1:
                 self.has_to_synchronize = True
-        self.post("http://"+self.server_url+"/api/alive",
+        self.post("https://"+self.server_url+"/api/alive",
                       {'device_id': self.get_device_id(), 'timer': time.mktime(time.localtime())}, on_succ=handle)
 
     def send_emergency(self, emergency_level):
         log("send alarm")
-        self.post('http://' + self.server_url + '/api/emergency',
+        self.post('https://' + self.server_url + '/api/emergency',
                             {'device_id': self.get_device_id(), 'emergency_level': emergency_level})
 
     def get_unconfirmed_alarms(self) -> List[Alarm]:
@@ -116,7 +116,7 @@ class Backend:
 
     def send_deescalate(self, emergency_level):
         log("send deescalate")
-        self.post('http://'+self.server_url + '/api/deescalate',
+        self.post('https://'+self.server_url + '/api/deescalate',
                       data={'device_id': self.get_device_id(), 'emergency_level': emergency_level})
 
     def get_settings(self):
@@ -148,7 +148,7 @@ class Backend:
         data={'token': token}
         query = json.dumps(data)
         req_headers = {"Content-type": "application/json"}
-        UrlRequest('http://'+self.server_url + '/api/get_apikey', req_body=query, 
+        UrlRequest('https://'+self.server_url + '/api/get_apikey', req_body=query, 
                         req_headers=req_headers, on_failure=self.not_reachable,
                         on_success=on_succ, timeout=10)
 
