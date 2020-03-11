@@ -8,6 +8,7 @@ from hausnotruf import eng, sm
 from kivy.uix.vkeyboard import VKeyboard
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
+from common.import *
 
 class MainButton(Button):
     # the full screen button displayed in the main screnn
