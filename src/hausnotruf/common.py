@@ -14,12 +14,12 @@ try:
     GPIO.setup(BuzzerPin, GPIO.OUT)
     GPIO.output(BuzzerPin, GPIO.HIGH)
     GPIO.setup(voltagePin, GPIO.OUT)
-    GPIO.output(voltagePin, GPIO.LOW)
+    GPIO.output(voltagePin, GPIO.HIGH)
     gpio = True
     def make_sound():
-        GPIO.output(voltagePin, GPIO.HIGH)
-        Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.LOW), 0.5)
-        pass
+        GPIO.output(BuzzerPin, GPIO.LOW)
+        Clock.schedule_once(lambda x: GPIO.output(BuzzerPin, GPIO.HIGH), 0.5)
+
 except ImportError:
     gpio = False
     def make_sound():
@@ -32,6 +32,7 @@ def log(msg):
 
 def err(msg):
     print(f"[ERROR  ] [Hausnotruf   ] {msg}")
+    
 popup_open = False
 def popup_closing(func):
     def wrapped(*args, **kwargs):
