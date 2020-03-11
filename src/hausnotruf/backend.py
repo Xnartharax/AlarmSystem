@@ -28,12 +28,12 @@ class Backend:
         elif req.resp_status == 500:
             self.error_flags["Server kaputt"] = True
         else:
-            self.error_flags["Kein Internet"] = True
+            self.error_flags["Kein Internet"] = True 
 
     def request_succ_handle(self, func):
         def new_func(*args, **kwargs):
-            for error_code in self.error_flags.values():
-                error_code = False
+            for error in self.error_flags:
+                self.error_flags[error] = False
             func(*args, **kwargs)
         return new_func
 
