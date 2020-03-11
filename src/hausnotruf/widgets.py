@@ -143,5 +143,5 @@ class AlarmNowButton(Button):
         eng.active_alarm = True
         sm.current = 'alarm'
         eng.alarmState = True
-        # make_sound()
+        make_sound()
 
