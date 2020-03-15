@@ -1,3 +1,5 @@
+from kivy.config import Config
+Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 from math import floor
 from kivy.uix.screenmanager import ScreenManager, Screen
 
