@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
+from kivy.core.window import Window
 
 try:
     import RPi.GPIO as GPIO
@@ -70,6 +71,8 @@ def device_auth(eng):
 class DeviceAuthLayout(BoxLayout):
     def __init__(self, eng, popup):
         super().__init__()
+        self._keyboard =Window.request_keyboard(
+            self.submit, self, 'number')
         self.popup = popup
         self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
         self.eng = eng
