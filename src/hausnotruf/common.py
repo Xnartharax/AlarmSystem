@@ -6,6 +6,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
+from kivy.config import Config
+Config.set('kivy', 'keyboard_mode', 'systemandmulti')
+
 
 try:
     import RPi.GPIO as GPIO
