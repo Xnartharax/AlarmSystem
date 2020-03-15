@@ -40,7 +40,7 @@ class MainButton(Button):
         if eng.closest_alarm is None or eng.closest_alarm.status == 0:
             sm.current = 'menu'
             def switchback(delay):
-                if sm.current != "alarm":
+                if sm.current != "alarm": # user can trigger alarm in menu and be uable to deescalate in the Main Screen
                     sm.current = 'main'
             Clock.schedule_once(switchback, 10)
         else:
