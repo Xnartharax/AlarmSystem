@@ -73,10 +73,10 @@ def device_auth(eng):
 class DeviceAuthLayout(BoxLayout):
     def __init__(self, eng, popup):
         super().__init__()
-        self._keyboard =Window.request_keyboard(
-            None, self, 'number')
+        self._keyboard = Window.request_keyboard(
+            lambda x: self.submit(self.pininput.text), self, 'number')
         self.popup = popup
-        self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
+        self.pininput = TextInput(multiline=False, text="PIN", font_size=120, focus=True)
         self.eng = eng
         self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
         self.add_widget(self.pininput)
