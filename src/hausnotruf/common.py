@@ -74,9 +74,12 @@ class DeviceAuthLayout(BoxLayout):
     def __init__(self, eng, popup):
         super().__init__()
         self._keyboard = Window.request_keyboard(
-            lambda x: self.submit(self.pininput.text), self, 'number')
+            lambda x: self.submit(self.pininput.text), self, 'pin.json')
+        self._keyboard.widget.docked = True
+        self._keyboard.widget.layout = "pin.json"
+        self._keyboard.widget.setup_mode()
         self.popup = popup
-        self.pininput = TextInput(multiline=False, text="PIN", font_size=120, focus=True)
+        self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
         self.eng = eng
         self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
         self.add_widget(self.pininput)
