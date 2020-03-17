@@ -9,7 +9,7 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from hausnotruf.common import *
-
+Window.softinput_mode = "below_target"
 class MainButton(Button):
     # the full screen button displayed in the main screnn
     def __init__(self):
@@ -40,7 +40,7 @@ class MainButton(Button):
         if eng.closest_alarm is None or eng.closest_alarm.status == 0:
             sm.current = 'menu'
             def switchback(delay):
-                if sm.current != "alarm": # user can trigger alarm in menu and be uable to deescalate in the Main Screen
+                if sm.current == "menu": # user can trigger alarm in menu and be uable to deescalate in the Main Screen
                     sm.current = 'main'
             Clock.schedule_once(switchback, 10)
         else:
@@ -58,8 +58,29 @@ class AlarmButton(Button):
     def on_press(self):
         eng.deescalate()
         sm.current = 'main'
-        
+   
+class DeviceAuthLayout(BoxLayout):
+    def __init__(self, eng):
+        super().__init__()
+        self.orientation = "vertical"
+        self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
+        self.eng = eng
+        self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
+        self.pininput.bind(focus=lambda inst, value: self.on_pin_focus(value))
+        self.add_widget(self.pininput)
+    def on_pin_focus(self, focus):
+        if focus:
+            self.pininput.keyboard.widget.docked = True
+            self.pininput.keyboard.widget.layout = "pin.json"
+            self.pininput.keyboard.widget.setup_mode()
+    def submit(self, inst):
+        self.eng.fetch_api_key(inst.text)
+        sm.current = "main"
 
+class AuthScreen(Screen):
+    def __init__(self, name='main'):
+        super().__init__(name=name)
+        self.add_widget(DeviceAuthLayout(eng))
 
 class MainButtonScreen(Screen):
     def __init__(self, name='main'):

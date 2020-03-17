@@ -67,29 +67,10 @@ def popup_error_msg(msg):
 
 @popup_opening
 def device_auth(eng):
-    popup = DeviceAuthPopup(eng)
-    popup.open()
+    from hausnotruf.widgets import sm
+    sm.current = "auth"
 
-class DeviceAuthLayout(BoxLayout):
-    def __init__(self, eng, popup):
-        super().__init__()
-        self._keyboard = Window.request_keyboard(
-            lambda x: self.submit(self.pininput.text), self, 'pin.json')
-        self._keyboard.widget.docked = True
-        self._keyboard.widget.layout = "pin.json"
-        self._keyboard.widget.setup_mode()
-        self.popup = popup
-        self.pininput = TextInput(multiline=False, text="PIN", font_size=120)
-        self.eng = eng
-        self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
-        self.add_widget(self.pininput)
-    @popup_closing
-    def submit(self, inst):
-        self.eng.fetch_api_key(inst.text)
-        self.popup.dismiss()
+
         
-class DeviceAuthPopup(Popup):
-    def __init__(self, eng):
-        content = DeviceAuthLayout(eng, self)
-        super().__init__(content=content)
+
         

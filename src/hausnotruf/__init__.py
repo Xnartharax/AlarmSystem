@@ -21,12 +21,13 @@ from hausnotruf.engine import Engine
 backend = Backend()
 sm = ScreenManager()
 eng = Engine(backend)
-from hausnotruf.widgets import AlarmScreen, MainButtonScreen, MenuScreen
+from hausnotruf.widgets import AlarmScreen, MainButtonScreen, MenuScreen, AuthScreen
 
 
 sm.add_widget(AlarmScreen())
 sm.add_widget(MainButtonScreen(name='main'))
 sm.add_widget(MenuScreen(name='menu'))
+sm.add_widget(AuthScreen(name='auth'))
 sm.current = 'main'
 
 
