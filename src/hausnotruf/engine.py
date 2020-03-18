@@ -50,7 +50,7 @@ class Engine:
             self.closest_alarm.altered()
         else:
             self.active_alarm = False
-            self.backend.send_deescalate(self.closest_alarm.get_escalation_level())
+            self.backend.send_deescalate(4)
         self.closest_alarm = None
         self.backend.has_to_synchronize = True
 
