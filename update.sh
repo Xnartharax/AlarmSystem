@@ -5,3 +5,6 @@ cd ${DIR}
 echo ${DIR}
 git fetch
 git checkout HEAD ${DIR}/src/
+cd src
+kill -9 < hausnortuf_pid.txt
+sudo python3.6 Main.py
