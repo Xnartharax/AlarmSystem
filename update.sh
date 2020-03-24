@@ -6,5 +6,5 @@ echo ${DIR}
 git fetch
 git checkout HEAD ${DIR}/src/
 cd src
-sudo kill -9 $("cat hausnortuf_pid.txt")
+sudo kill -9 $(cat ./hausnortuf_pid.txt)
 sudo python3.6 Main.py
