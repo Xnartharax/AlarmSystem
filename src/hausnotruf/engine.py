@@ -34,6 +34,7 @@ class Engine:
         
     def confirm_alarm(self):
         self.closest_alarm.confirmed = True
+        self.closest_alarm.altered()
         session.commit()
         self.backend.has_to_synchronize = True
         self.closest_alarm = self.backend.get_closest_alarm()
