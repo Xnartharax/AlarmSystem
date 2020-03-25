@@ -62,9 +62,9 @@ class Alarm(Base):
                             self.status = 4
             else:
                 self.status = 0
-        self.altered()
+       
         session.commit()
-        
+
     def get_escalation_level(self):
         if self.status < 2:
             return 0
