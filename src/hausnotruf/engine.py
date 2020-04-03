@@ -12,7 +12,6 @@ class Engine:
         Clock.schedule_interval(main_engine, sleep_duration)
         self.active_alarm = False
         self.sound = None
-        self.send_alarm = False
 
 
     def mainloop(self):
@@ -48,9 +47,7 @@ class Engine:
         for alarm in alarms:
             alarm.status_check()
             if alarm.get_escalation_level() > 0:
-                if not self.send_alarm:
-                    self.send_alarm = True
-                    self.send_emergency(alarm.get_escalation_level())
+                self.send_emergency(alarm.get_escalation_level())
                 if self.sound is None: self.sound = Clock.schedule_interval(lambda t: make_sound(), 1)
 
     def deescalate(self):
@@ -61,7 +58,6 @@ class Engine:
             self.closest_alarm.confirmed = True
             self.backend.send_deescalate(self.closest_alarm.get_escalation_level())
             self.closest_alarm.altered()
-            self.send_alarm = False
         else:
             self.active_alarm = False
             self.backend.send_deescalate(4)
