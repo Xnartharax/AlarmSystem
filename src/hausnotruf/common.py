@@ -50,8 +50,7 @@ def popup_opening(func):
     return wrapped
 
 @popup_opening
-def popup_error_msg(msg):
-    
+def popup_error_msg(msg: str):
     dismiss_button = Button(text="OK", font_size=140)
     msg_label = Label(text=msg, font_size=140)
     content = BoxLayout(orientation="vertical")
@@ -75,6 +74,7 @@ class DeviceAuthLayout(BoxLayout):
         self.eng = eng
         self.pininput.bind(on_text_validate=lambda inst: self.submit(inst))
         self.add_widget(self.pininput)
+        
     @popup_closing
     def submit(self, inst):
         self.eng.fetch_api_key(inst.text)

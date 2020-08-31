@@ -1,5 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
+import os
+db_path = os.environ.get("HAUSNOTRUFDB") or "sqlite:///../data/coredata.db"
 db_engine = create_engine("sqlite:///../data/coredata.db")
 Base = declarative_base()
 from sqlalchemy.orm import sessionmaker
@@ -7,6 +9,7 @@ Session = sessionmaker(bind = db_engine)
 session = Session()
 from datetime import datetime, timedelta
 import time
+from typing import Dict
 class Alarm(Base):
     __tablename__ = "alarms"
     id = Column(Integer, primary_key=True)
@@ -20,7 +23,7 @@ class Alarm(Base):
         self.status += 1
         session.commit()
 
-    def update(self, json):
+    def update(self, json: Dict):
         self.timer_escalation = datetime.strptime(json["timer_escalation"], "%m/%d/%Y, %H:%M")
         self.timer_confirmation = datetime.strptime(json["timer_confirmation"], "%m/%d/%Y, %H:%M")
         self.status = json["status"]
@@ -32,7 +35,7 @@ class Alarm(Base):
         self.updated = time.time()
         session.commit()
 
-    def postpone(self, hours):
+    def postpone(self, hours: int):
         delta = timedelta(hours=hours)
         self.timer_escalation += delta
         self.timer_confirmation += delta
@@ -79,7 +82,7 @@ class Alarm(Base):
         return self.timer_escalation.strftime("%d.%m \n %H:%M")
 
     @staticmethod
-    def from_dict(alarm_dict):
+    def from_dict(alarm_dict: Dict):
         return Alarm(id=alarm_dict["id"], timer_escalation=datetime.strptime(alarm_dict["timer_escalation"], "%m/%d/%Y, %H:%M"),
                         timer_confirmation=datetime.strptime(alarm_dict["timer_confirmation"], "%m/%d/%Y, %H:%M"), confirmed=alarm_dict["confirmed"],
                         updated=alarm_dict["updated"], status=alarm_dict["status"])
