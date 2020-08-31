@@ -11,12 +11,11 @@ class Engine:
         sleep_duration = self.backend.get_settings()["sleep"]
         Clock.schedule_interval(main_engine, sleep_duration)
         self.active_alarm = False
-        self.sound = None
-
+        self.emergency_sent = False
 
     def mainloop(self):
         log('mainloop step')
-        if self.backend.get_auth_key() is None:
+        if self.backend.get_auth_key() is None or self.backend.error_flags["Authentfication Error"]:
             device_auth(self)
         self.backend.send_alive()
         if len(self.backend.get_unconfirmed_alarms()) == 0:
@@ -46,9 +45,9 @@ class Engine:
         alarms = self.backend.get_unconfirmed_alarms()
         for alarm in alarms:
             alarm.status_check()
-            if alarm.get_escalation_level() > 0:
+            if alarm.get_escalation_level() > 0 and not self.emergency_sent:
                 self.send_emergency(alarm.get_escalation_level())
-                if self.sound is None: self.sound = Clock.schedule_interval(lambda t: make_sound(), 1)
+            
 
     def deescalate(self):
         if self.sound is not None:
@@ -63,8 +62,9 @@ class Engine:
             self.backend.send_deescalate(4)
         self.closest_alarm = None
         self.backend.has_to_synchronize = True
+        self.emergency_sent = False
 
-    def postpone_alarm(self, hours):
+    def postpone_alarm(self, hours: int):
         if self.closest_alarm is not None:
             self.closest_alarm.postpone(hours)
             for alarm in session.query(Alarm).filter(Alarm.timer_escalation < self.closest_alarm.timer_confirmation).all():
@@ -72,8 +72,9 @@ class Engine:
                 alarm.altered()
             self.backend.has_to_synchronize = True
 
-    def send_emergency(self, level):
+    def send_emergency(self, level: int):
+        self.emergency_sent = True
         self.backend.send_emergency(level)
 
-    def fetch_api_key(self, value):
+    def fetch_api_key(self, value: str):
         self.backend.fetch_auth_key(value)
