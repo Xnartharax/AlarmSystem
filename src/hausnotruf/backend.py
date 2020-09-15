@@ -25,7 +25,9 @@ class Backend:
         self.has_to_synchronize = True
     
     def not_reachable(self, req : UrlRequest, res):
-        if req.resp_status == 403:
+        if res.get("message") is not None:
+            self.error_flags[res.get("message")] = True
+        elif req.resp_status == 403:
             self.error_flags["Authentfication Error"] = True
         elif req.resp_status == 500:
             self.error_flags["Server Error"] = True

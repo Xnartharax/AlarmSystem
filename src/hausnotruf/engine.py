@@ -12,6 +12,7 @@ class Engine:
         Clock.schedule_interval(main_engine, sleep_duration)
         self.active_alarm = False
         self.emergency_sent = False
+        self.sound = None
 
     def mainloop(self):
         log('mainloop step')
